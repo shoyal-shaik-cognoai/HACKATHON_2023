@@ -1,0 +1,3 @@
+hack/migrations/*
+*.pyc
+.DS_Store
