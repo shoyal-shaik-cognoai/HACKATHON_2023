@@ -32,6 +32,8 @@ MIDDLEWARE = [
 
 ROOT_URLCONF = 'exohack.urls'
 
+HACK_DOMAIN = "http://127.0.0.1:8000/"
+
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
@@ -195,7 +197,7 @@ LOGTAILER_LINES = 1000
 
 LANGUAGE_CODE = 'en-us'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'Asia/Kolkata'
 
 USE_I18N = True
 

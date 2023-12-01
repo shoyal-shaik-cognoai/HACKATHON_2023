@@ -3,12 +3,14 @@ import os
 import sys
 from django.shortcuts import render
 import json
-from hack.models import CandidateProfile
+from hack.models import CandidateProfile, JobData
 from rest_framework.views import APIView
 from rest_framework.response import Response
 import openai
 import logging
 import sys
+
+from exohack.settings import HACK_DOMAIN
 
 logger = logging.getLogger(__name__)
 
@@ -59,7 +61,12 @@ class CVShortlistingAPI(APIView):
         try:
             data = request.GET
 
-            short_list_query = data['short_list_query']
+            short_list_query = data.get('short_list_query', '')
+            job_pk = data.get('job_pk', '')
+            job_obj = None
+
+            if job_pk:
+                job_obj = JobData.objects.filter(pk=int(job_pk)).first()
 
             openai.api_key = "05a87e3db47149699916b25e2b6a664e"
             openai.api_type = "azure"
@@ -73,18 +80,22 @@ class CVShortlistingAPI(APIView):
                 try:
                     chat_history = []
                     system_prompt = """You are HR at a Tech Company who is really strict in shortlist CVs.
-                        You will be given a CV in Source, your job is to provide is that CV eligible base on user query.
-                        You should look into all the aspects like skills are they related to the user query. 
-                        Their past working experience are they related to the user query.
-                        When asked on job role you need to very specific a techie can't be a sales and a soles guys can't be a techie.
+                        You will be given a CV in Source, your job is to provide is that CV eligible base on job post.
+                        You should look into all the aspects like skills are they related to the job post. 
+                        Their past working experience are they related to the job post.
+                        When asked on job role you need to very specific a techie can't be a sales and a sales guys can't be a techie.
                         Remember You need to provide will this person eligible based of user query just give yes or No?
-                        If user query not present in the CV then the candidate is uneligible.
+                        If job post skills not present in the CV then the candidate is not eligible.
                         Remember You need to provide how confident are you on this just give here the percentage.
-                        Give in this format dictionary E.g. {"Name":"candiadate name", "Eligible":true, "ResultConfidence":"70%" "Reason":"Person is sales person"
-                        Source :
+                        Give in this format dictionary E.g. {"Name":"candidates name", "Eligible":true, "ResultConfidence":"40%" "Reason":"Person is sales person"
+
+                        Resume is:
                     """ + candidate_profile_obj.cv_content
                     chat_history.append({'role': 'system', 'content': system_prompt})
-                    chat_history.append({'role': 'user', 'content': short_list_query})
+                    if job_obj:
+                        chat_history.append({'role': 'user', 'content': f"Job Description is : {job_obj.job_description} and Job Role is: "})
+                    else:
+                        chat_history.append({'role': 'user', 'content': short_list_query})
                     chat_completion_response = openai.ChatCompletion.create(
                         deployment_id=deployment_id,
                         model=model_used,
@@ -115,6 +126,9 @@ class CVShortlistingAPI(APIView):
                     print(json.loads(complete_streamed_text))
                     eligibility_dict = json.loads(complete_streamed_text)
 
+                    candidate_profile_obj.confidence_percentage = eligibility_dict.get('ResultConfidence')
+                    candidate_profile_obj.save()
+
                     if eligibility_dict.get('Eligible') and (int(eligibility_dict.get('ResultConfidence')[:-1]) > 50):
                         candidates_phone_numbers_list.append({'name': candidate_profile_obj.candidate_name, 'phone_number': candidate_profile_obj.phone_number, 'result_reason': eligibility_dict.get('Reason')})
                     elif not eligibility_dict.get('Eligible') and (int(eligibility_dict.get('ResultConfidence')[:-1]) < 30):
@@ -134,7 +148,7 @@ class CVShortlistingAPI(APIView):
 CVShortlisting = CVShortlistingAPI.as_view()
 
 
-def TestPage(request):
+def HomePage(request):
     try:
 
         logger.info("testing logs.", extra={'AppName': 'hack'})
@@ -149,3 +163,70 @@ def TestPage(request):
                      str(e), str(exc_tb.tb_lineno), extra={'AppName': 'hack'})
         # return HttpResponse("500")
         return render(request, 'EasyChatApp/error_500.html')
+
+
+class GetCandidateDataAPI(APIView):
+    def post(self, request, *args, **kwargs):
+        response = {}
+        response['status'] = 500
+        try:
+            candidate_profile_objs = CandidateProfile.objects.all()
+            req_data = []
+
+            for candidate_profile_obj in candidate_profile_objs:
+                curr_data = {
+                    "name": candidate_profile_obj.candidate_name,
+                    "phone_number": candidate_profile_obj.phone_number,
+                    "cv_file_path": HACK_DOMAIN + candidate_profile_obj.file_path
+                }
+
+                req_data.append(curr_data)
+
+            response['status'] = 200
+            response['response'] = 'success'
+            response['data'] = req_data
+
+
+        except Exception as e:
+            exc_type, exc_obj, exc_tb = sys.exc_info()
+            logger.error("GetCandidateDataAPI %s at %s", str(e), str(exc_tb.tb_lineno), extra={'AppName': 'hack'})
+
+        return Response(data=response, status=response['status'])
+GetCandidateData = GetCandidateDataAPI.as_view()
+
+class GetJobDataAPI(APIView):
+    def post(self, request, *args, **kwargs):
+        response = {}
+        response['status'] = 500
+        try:
+            req_data = request.data
+
+            job_pk = req_data.get('job_pk', None)
+
+            if job_pk:
+                job_obj = JobData.objects.filter(pk=int(job_pk)).first()
+                response['job_description'] = job_obj.job_description
+            else:
+                job_objs = JobData.objects.all()
+                req_data = []
+
+                for job_obj in job_objs:
+                    
+                    curr_data = {
+                        "job_title": job_obj.job_title,
+                        "job_description": job_obj.job_description,
+                        "job_pk": job_obj.pk
+                    }
+
+                    req_data.append(curr_data)
+                response['data'] = req_data
+
+            response['status'] = 200
+            response['response'] = 'success'
+
+        except Exception as e:
+            exc_type, exc_obj, exc_tb = sys.exc_info()
+            logger.error("GetJobDataAPI %s at %s", str(e), str(exc_tb.tb_lineno), extra={'AppName': 'hack'})
+
+        return Response(data=response, status=response['status'])
+GetJobData = GetJobDataAPI.as_view()

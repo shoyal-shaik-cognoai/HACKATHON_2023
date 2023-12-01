@@ -15,6 +15,7 @@ class CandidateProfile(models.Model):
 
     file_path = models.TextField(null=True, blank=True)
 
+    confidence_percentage = models.CharField(null=True, blank=True, max_length=10)
 
     def __str__(self):
         return self.candidate_name
@@ -22,3 +23,20 @@ class CandidateProfile(models.Model):
     class Meta:
         verbose_name = 'CandidateProfile'
         verbose_name_plural = 'CandidateProfile'
+
+class JobData(models.Model):
+
+    job_title = models.CharField(max_length=200)
+
+    job_description = models.TextField(null=True, blank=True, help_text="job_description")
+
+    # user = models.ForeignKey(CandidateProfile, null=True,blank=True, on_delete=models.CASCADE)
+
+    applicable_for = models.ManyToManyField('CandidateProfile', blank=True, help_text="CandidateProfile")
+
+    def __str__(self):
+        return self.job_title
+
+    class Meta:
+        verbose_name = 'JobData'
+        verbose_name_plural = 'JobData'
