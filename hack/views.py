@@ -272,10 +272,56 @@ class InitiateCallCampaignAPI(APIView):
         try:
             req_data = request.data
             list_of_phone_numbers = req_data.get('list_of_phone_numbers', [])
-            for num in list_of_phone_numbers:
-                candidate_profile_obj = CandidateProfile.objects.filter(phone_number=num).first()
-                call_campaign(num)
+            job_profile_pk = req_data.get('job_profile_pk')
+            job_data_obj = JobData.objects.filter(pk=job_profile_pk).first()
+            qualified_objs = CandidateJobStatus.objects.filter(status='cv_shortlisted', job=job_data_obj)
+            for objs in qualified_objs:
+                candidate_profile = objs.candidate_profile
+                job_description = job_data_obj.job_description
+                system_prompt = """You a HR at a tech company.
+                        Your job is to generate 5 very basic interview question to ask a candidate which relate to Job Description given below
+                        Generate your questions in this format E.g.
+                        {"q1": "one word question related to Job Description", "q2": "one word question related to Job Description", "q3": "one word question related to Job Description", "q4": "one word question related to Job Description", "q5": "one word question related to Job Description"}
+                        Job Description:
+
+                """ + job_description
+
+                openai.api_key = "05a87e3db47149699916b25e2b6a664e"
+                openai.api_type = "azure"
+                openai.api_base = "https://gpt3-5-sc.openai.azure.com/"
+                openai.api_version = "2023-07-01-preview"
+                model_used = "gpt-35-turbo-16k"
+                deployment_id = "hack-16k"
+                chat_history = [{'role': 'system', 'content': system_prompt}]
+                chat_completion_response = openai.ChatCompletion.create(
+                    deployment_id=deployment_id,
+                    model=model_used,
+                    messages=chat_history,
+                    temperature=0,
+                    n=1,
+                    stream=True,
+                    presence_penalty=-2.0
+                )
+
+                complete_streamed_text = ""
+
+                for chunk in chat_completion_response:
+                    try:
+                        if chunk['choices'] and chunk['choices'][0] and chunk['choices'][0].get('delta') and chunk['choices'][0]['delta'].get("content"):
+                            complete_streamed_text += chunk['choices'][0]['delta']["content"]
+                    except Exception as e:
+                        print("Inside exception")
+                        print(str(e))
+                        pass
+                print(complete_streamed_text)
+                candidate_profile.questions_to_be_asked = complete_streamed_text
+                candidate_profile.save(update_fields=["questions_to_be_asked"])
+                call_campaign(str(candidate_profile.phone_number))
+            response['status'] = 200
         except Exception as e:
             exc_type, exc_obj, exc_tb = sys.exc_info()
+            print(e, exc_tb.tb_lineno)
             logger.error("GetJobDataAPI %s at %s", str(e), str(exc_tb.tb_lineno), extra={'AppName': 'hack'})
+        return Response(data=response, status=response['status'])
+
 InitiateCallCampaign = InitiateCallCampaignAPI.as_view()

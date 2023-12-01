@@ -63,6 +63,7 @@ class ExoDevWebSocketConsumer(AsyncWebsocketConsumer):
             }]
         
         self.questions_dict = {"q1": "What is your name", "q2": "what is your job role?", "q3": "Why you want to join our company","q4": "why you leaving your previous company","q5": "How much salary you are expecting?"}
+
         self.stage_wise_questions = {
             "ask_for_time_slot": "I understand, can you please provide time slot that we can call?",
             "proceed_with_interview": "shall we proceed ahead to as I will ask few question you need to answer them as per you knowledge",
@@ -308,6 +309,10 @@ class ExoDevWebSocketConsumer(AsyncWebsocketConsumer):
         await self.close()
         logger.info("Socket disconnected on ExoDevWebSocketConsumer", extra={'AppName': 'hack'})
 
+    @sync_to_async
+    def get_questions_to_be_asked(self):
+        return json.loads(CandidateProfile.objects.filter(phone_number=int('91'+self.user_phone_number[-10:])).first().questions_to_be_asked)
+
     async def receive(self, text_data):
         text_data_json = json.loads(text_data)
         event = text_data_json.get('event')
@@ -332,6 +337,51 @@ class ExoDevWebSocketConsumer(AsyncWebsocketConsumer):
                     self.account_sid = start_json.get("account_sid", "")
                     self.user_phone_number = start_json.get("from", "")
                     print(self.call_sid, self.account_sid, '91'+self.user_phone_number[-10:])
+                    self.questions_dict = await self.get_questions_to_be_asked()
+                    self.stage_wise_questions = {
+                        "ask_for_time_slot": "I understand, can you please provide time slot that we can call?",
+                        "proceed_with_interview": "shall we proceed ahead to as I will ask few question you need to answer them as per you knowledge",
+                        "question_1": self.questions_dict['q1'],
+                        "question_2": 'Okay' + self.questions_dict['q2'],
+                        "question_3": 'Got it' + self.questions_dict['q3'],
+                        "question_4": self.questions_dict['q4'],
+                        "question_5": 'One Last one,' + self.questions_dict['q5'],
+                        "close_interview": "Thank you for answering the question we will get back to you for next round",
+                        "interview_time_slot": "Thank you for providing time we will get back to you then.",
+                        "declining_offer": "Thank you for applying, ask you haven't provided any furture time slots we need to discontinue here",
+                    }
+                    self.question_1_prompt = self.common_prompt + f"""you have asked this question {self.questions_dict['q1']}
+
+                        If during conversation candidate provides the response just call question_2 function.
+                    """
+                    self.question_2_prompt = self.common_prompt+ f"""You have asked the next question which is  {self.questions_dict['q2']}
+                    
+                        If during conversation candidate provides the whole answer then you need to call question_3 function.
+                    """
+                    self.question_3_prompt = self.common_prompt + f"""You have asked the next question which is  {self.questions_dict['q3']}
+                    
+                        If during conversation candidate provides the whole answer then you need to call question_4 function.
+                    """
+                    self.question_4_prompt = self.common_prompt + f"""You have asked the next question which is  {self.questions_dict['q4']}
+                    
+                        If during conversation candidate provides the whole answer then you need to call question_5 function.
+                    """
+                    self.question_5_prompt = self.common_prompt + f"""You have asked the next question which is  {self.questions_dict['q5']}
+                    
+                        If during conversation candidate provides the whole answer then you need to call close_interview function.
+                    """
+                    self.stage_wise_prompts = {
+                        "ask_for_time_slot": self.ask_for_time_slot_prompt,
+                        "proceed_with_interview": self.proceed_with_interview_prompt,
+                        "question_1": self.question_1_prompt,
+                        "question_2": self.question_2_prompt,
+                        "question_3": self.question_3_prompt,
+                        "question_4": self.question_4_prompt,
+                        "question_5": self.question_5_prompt,
+                        "interview_time_slot": "",
+                        "close_interview": "",
+                        "end_call": "",
+                    }
 
     async def handle_media(self, message_data):
         media_payload = message_data.get('media', {})
