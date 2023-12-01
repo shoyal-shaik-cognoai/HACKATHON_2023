@@ -3,7 +3,7 @@ import os
 import sys
 from django.shortcuts import render
 import json
-from hack.models import CandidateProfile
+from hack.models import CandidateProfile, JobData
 from rest_framework.views import APIView
 from rest_framework.response import Response
 import openai
@@ -78,7 +78,7 @@ class CVShortlistingAPI(APIView):
                         You will be given a CV in Source, your job is to provide is that CV eligible base on user query.
                         You should look into all the aspects like skills are they related to the user query. 
                         Their past working experience are they related to the user query.
-                        When asked on job role you need to very specific a techie can't be a sales and a soles guys can't be a techie.
+                        When asked on job role you need to very specific a techie can't be a sales and a sales guys can't be a techie.
                         Remember You need to provide will this person eligible based of user query just give yes or No?
                         If user query not present in the CV then the candidate is un-eligible.
                         Remember You need to provide how confident are you on this just give here the percentage.
@@ -136,7 +136,7 @@ class CVShortlistingAPI(APIView):
 CVShortlisting = CVShortlistingAPI.as_view()
 
 
-def TestPage(request):
+def HomePage(request):
     try:
 
         logger.info("testing logs.", extra={'AppName': 'hack'})
@@ -181,3 +181,40 @@ class GetCandidateDataAPI(APIView):
 
         return Response(data=response, status=response['status'])
 GetCandidateData = GetCandidateDataAPI.as_view()
+
+class GetJobDataAPI(APIView):
+    def post(self, request, *args, **kwargs):
+        response = {}
+        response['status'] = 500
+        try:
+            req_data = request.data
+
+            job_pk = req_data.get('job_pk', None)
+
+            if job_pk:
+                job_obj = JobData.objects.filter(pk=int(job_pk)).first()
+                response['job_description'] = job_obj.job_description
+            else:
+                job_objs = JobData.objects.all()
+                req_data = []
+
+                for job_obj in job_objs:
+                    
+                    curr_data = {
+                        "job_title": job_obj.job_title,
+                        "job_description": job_obj.job_description,
+                        "job_pk": job_obj.pk
+                    }
+
+                    req_data.append(curr_data)
+                response['data'] = req_data
+
+            response['status'] = 200
+            response['response'] = 'success'
+
+        except Exception as e:
+            exc_type, exc_obj, exc_tb = sys.exc_info()
+            logger.error("GetJobDataAPI %s at %s", str(e), str(exc_tb.tb_lineno), extra={'AppName': 'hack'})
+
+        return Response(data=response, status=response['status'])
+GetJobData = GetJobDataAPI.as_view()
