@@ -3,3 +3,4 @@ hack/migrations/*
 .DS_Store
 static/*
 log/*
+.vscode/*
