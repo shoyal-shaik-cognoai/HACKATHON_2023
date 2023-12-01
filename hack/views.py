@@ -70,12 +70,12 @@ class CVShortlistingAPI(APIView):
             if job_pk:
                 job_obj = JobData.objects.filter(pk=int(job_pk)).first()
 
-            openai.api_key = "93395151f1634e67bd1d3017437e033d"
+            openai.api_key = "05a87e3db47149699916b25e2b6a664e"
             openai.api_type = "azure"
-            openai.api_base = "https://exotel-cogno-openai.openai.azure.com/"
+            openai.api_base = "https://gpt3-5-sc.openai.azure.com/"
             openai.api_version = "2023-07-01-preview"
-            model_used = "gpt-3.5-turbo-16k"
-            deployment_id = "bajaj-finserv-markets"
+            model_used = "gpt-35-turbo-instruct"
+            deployment_id = "kb-test1"
             candidate_profile_objs = CandidateProfile.objects.all()
             candidates_phone_numbers_list = []
             for candidate_profile_obj in candidate_profile_objs:
