@@ -49,7 +49,7 @@ class JobData(models.Model):
 
 class CandidateJobStatus(models.Model):
 
-    status = models.CharField(max_length=200)
+    status = models.CharField(max_length=200, default="applied")
 
     candidate_profile = models.ForeignKey('CandidateProfile', null=True, blank=True, on_delete=models.SET_NULL)
 

@@ -247,7 +247,8 @@ class GetJobDataAPI(APIView):
                     curr_data = {
                         "job_title": job_obj.job_title,
                         "job_description": job_obj.job_description,
-                        "job_pk": job_obj.pk
+                        "job_pk": job_obj.pk,
+                        "status": job_obj.job_status
                     }
 
                     req_data.append(curr_data)
