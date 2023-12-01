@@ -10,6 +10,8 @@ import openai
 import logging
 import sys
 
+from exohack.settings import HACK_DOMAIN
+
 logger = logging.getLogger(__name__)
 
 # Create your views here.
@@ -78,9 +80,9 @@ class CVShortlistingAPI(APIView):
                         Their past working experience are they related to the user query.
                         When asked on job role you need to very specific a techie can't be a sales and a soles guys can't be a techie.
                         Remember You need to provide will this person eligible based of user query just give yes or No?
-                        If user query not present in the CV then the candidate is uneligible.
+                        If user query not present in the CV then the candidate is un-eligible.
                         Remember You need to provide how confident are you on this just give here the percentage.
-                        Give in this format dictionary E.g. {"Name":"candiadate name", "Eligible":true, "ResultConfidence":"70%" "Reason":"Person is sales person"
+                        Give in this format dictionary E.g. {"Name":"candidates name", "Eligible":true, "ResultConfidence":"70%" "Reason":"Person is sales person"
                         Source :
                     """ + candidate_profile_obj.cv_content
                     chat_history.append({'role': 'system', 'content': system_prompt})
@@ -149,3 +151,33 @@ def TestPage(request):
                      str(e), str(exc_tb.tb_lineno), extra={'AppName': 'hack'})
         # return HttpResponse("500")
         return render(request, 'EasyChatApp/error_500.html')
+
+
+class GetCandidateDataAPI(APIView):
+    def post(self, request, *args, **kwargs):
+        response = {}
+        response['status'] = 500
+        try:
+            candidate_profile_objs = CandidateProfile.objects.all()
+            req_data = []
+
+            for candidate_profile_obj in candidate_profile_objs:
+                curr_data = {
+                    "name": candidate_profile_obj.candidate_name,
+                    "phone_number": candidate_profile_obj.phone_number,
+                    "cv_file_path": HACK_DOMAIN + candidate_profile_obj.file_path
+                }
+
+                req_data.append(curr_data)
+
+            response['status'] = 200
+            response['response'] = 'success'
+            response['data'] = req_data
+
+
+        except Exception as e:
+            exc_type, exc_obj, exc_tb = sys.exc_info()
+            logger.error("GetCandidateDataAPI %s at %s", str(e), str(exc_tb.tb_lineno), extra={'AppName': 'hack'})
+
+        return Response(data=response, status=response['status'])
+GetCandidateData = GetCandidateDataAPI.as_view()
