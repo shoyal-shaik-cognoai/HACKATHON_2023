@@ -61,7 +61,12 @@ class CVShortlistingAPI(APIView):
         try:
             data = request.GET
 
-            short_list_query = data['short_list_query']
+            short_list_query = data.get('short_list_query', '')
+            job_pk = data.get('job_pk', '')
+            job_obj = None
+
+            if job_pk:
+                job_obj = JobData.objects.filter(pk=int(job_pk)).first()
 
             openai.api_key = "93395151f1634e67bd1d3017437e033d"
             openai.api_type = "azure"
@@ -75,18 +80,22 @@ class CVShortlistingAPI(APIView):
                 try:
                     chat_history = []
                     system_prompt = """You are HR at a Tech Company who is really strict in shortlist CVs.
-                        You will be given a CV in Source, your job is to provide is that CV eligible base on user query.
-                        You should look into all the aspects like skills are they related to the user query. 
-                        Their past working experience are they related to the user query.
+                        You will be given a CV in Source, your job is to provide is that CV eligible base on job post.
+                        You should look into all the aspects like skills are they related to the job post. 
+                        Their past working experience are they related to the job post.
                         When asked on job role you need to very specific a techie can't be a sales and a sales guys can't be a techie.
                         Remember You need to provide will this person eligible based of user query just give yes or No?
-                        If user query not present in the CV then the candidate is un-eligible.
+                        If job post skills not present in the CV then the candidate is not eligible.
                         Remember You need to provide how confident are you on this just give here the percentage.
-                        Give in this format dictionary E.g. {"Name":"candidates name", "Eligible":true, "ResultConfidence":"70%" "Reason":"Person is sales person"
-                        Source :
+                        Give in this format dictionary E.g. {"Name":"candidates name", "Eligible":true, "ResultConfidence":"40%" "Reason":"Person is sales person"
+
+                        Resume is:
                     """ + candidate_profile_obj.cv_content
                     chat_history.append({'role': 'system', 'content': system_prompt})
-                    chat_history.append({'role': 'user', 'content': short_list_query})
+                    if job_obj:
+                        chat_history.append({'role': 'user', 'content': f"Job Description is : {job_obj.job_description} and Job Role is: "})
+                    else:
+                        chat_history.append({'role': 'user', 'content': short_list_query})
                     chat_completion_response = openai.ChatCompletion.create(
                         deployment_id=deployment_id,
                         model=model_used,
@@ -116,6 +125,9 @@ class CVShortlistingAPI(APIView):
                             pass
                     print(json.loads(complete_streamed_text))
                     eligibility_dict = json.loads(complete_streamed_text)
+
+                    candidate_profile_obj.confidence_percentage = eligibility_dict.get('ResultConfidence')
+                    candidate_profile_obj.save()
 
                     if eligibility_dict.get('Eligible') and (int(eligibility_dict.get('ResultConfidence')[:-1]) > 50):
                         candidates_phone_numbers_list.append({'name': candidate_profile_obj.candidate_name, 'phone_number': candidate_profile_obj.phone_number, 'result_reason': eligibility_dict.get('Reason')})

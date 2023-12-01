@@ -15,6 +15,7 @@ class CandidateProfile(models.Model):
 
     file_path = models.TextField(null=True, blank=True)
 
+    confidence_percentage = models.CharField(null=True, blank=True, max_length=10)
 
     def __str__(self):
         return self.candidate_name
