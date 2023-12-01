@@ -1,3 +1,5 @@
 hack/migrations/*
 *.pyc
 .DS_Store
+static/*
+log/*

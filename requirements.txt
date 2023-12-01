@@ -7,3 +7,4 @@ msgpack==1.0.7
 redis==5.0.1
 sqlparse==0.4.4
 typing_extensions==4.8.0
+djangorestframework
