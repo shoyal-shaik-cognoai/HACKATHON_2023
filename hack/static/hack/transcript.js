@@ -126,7 +126,7 @@ function addJobRoles(data) {
     const cell1 = document.createElement("td");
     cell1.textContent = data[x].job_title;
     cell1.id = data[x].job_pk
-    cell1.className = "jobClass"
+    cell1.className = "title"
     cell1.addEventListener('click', getJobDesc)
     const cell2 = document.createElement("td");
     cell2.textContent = "5";
@@ -144,7 +144,7 @@ function addJobRoles(data) {
     cell5.appendChild(inputButton)
     const cell6 = document.createElement("td");
     if(data[x].status == "pending"){
-      cell6.textContent = data[x].status
+      cell6.textContent = "Pending"
     }else if(data[x].status == "resume_shortlist"){
       cell6.textContent = "Resume Shortlisted"
     }else{
@@ -157,6 +157,7 @@ function addJobRoles(data) {
     newRow.appendChild(cell4);
     newRow.appendChild(cell5);
     newRow.appendChild(cell6);
+    newRow.className = "data-table"
     dataTableBody.appendChild(newRow);
   }
 }
