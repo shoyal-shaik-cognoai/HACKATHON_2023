@@ -105,15 +105,16 @@ class CVShortlistingAPI(APIView):
                     # else:
                     #     chat_history.append({'role': 'user', 'content': short_list_query})
 
-                    system_prompt = """You're an HR professional at a tech company known for stringent resume shortlisting. Your task is to evaluate resumes based on job posts, considering skills, relevant experience, and job roles. Respond with a simple 'Yes' or 'No' to indicate eligibility.
+                    system_prompt = """
+                        Evaluate a tech candidate's eligibility based on specific job-related skills, experience, and role alignment. Respond with 'Yes' or 'No' and indicate confidence (ResultConfidence) from 0 to 100%.
 
-                    Look for the presence of job-related skills and experience. Be specific about job roles; a techie can't fill a sales role, and vice versa. Confidence in eligibility should be expressed as 'ResultConfidence' ranging from 0 to 100%.
+                        Check for the presence of skills such as [List specific programming languages, tools, or technologies]. Ensure previous roles match the current tech job post.
 
-                    Provide results in a Python dictionary with a concise 'Reason' (within 50 words). Example response format: 
-                    {"Name": "Candidate's Name", "Eligible": true, "ResultConfidence": "20%", "Reason": "Sales experience matches job requirements."}
+                        Provide results:
+                        {"Name": "Candidate's Name", "Eligible": true/false, "ResultConfidence": "X%", "Reason": "Brief reason for eligibility"}
 
-                    Source:
-                    """ + candidate_profile_obj.cv_content
+                        Source:
+                        """  + candidate_profile_obj.cv_content
 
                     chat_history.append({'role': 'system', 'content': system_prompt})
 
@@ -126,7 +127,7 @@ class CVShortlistingAPI(APIView):
                         deployment_id=deployment_id,
                         model=model_used,
                         messages=chat_history,
-                        temperature=0.3,
+                        temperature=0,
                         n=1,
                         stream=True,
                         presence_penalty=-2.0
@@ -155,26 +156,26 @@ class CVShortlistingAPI(APIView):
                     candidate_profile_obj.confidence_percentage = eligibility_dict.get('ResultConfidence')
                     candidate_profile_obj.save()
 
-                    if eligibility_dict.get('Eligible') and (int(eligibility_dict.get('ResultConfidence')[:-1]) > 50):
+                    if eligibility_dict.get('Eligible') and (int(eligibility_dict.get('ResultConfidence')[:-1]) >= 60):
                         candidates_phone_numbers_list.append({'name': candidate_profile_obj.candidate_name, 'phone_number': candidate_profile_obj.phone_number, 'result_reason': eligibility_dict.get('Reason'), 'confidence': eligibility_dict.get('ResultConfidence'), 'cv_file_path': HACK_DOMAIN + candidate_profile_obj.file_path})
                         job_status = CandidateJobStatus.objects.filter(job=job_obj, candidate_profile=candidate_profile_obj).first()
                         job_status.status = 'cv_shortlisted'
                         job_status.save()
-                    elif not eligibility_dict.get('Eligible') and (int(eligibility_dict.get('ResultConfidence')[:-1]) < 30):
-                        candidates_phone_numbers_list.append({'name': candidate_profile_obj.candidate_name, 'phone_number': candidate_profile_obj.phone_number, 'result_reason': eligibility_dict.get('Reason'), 'confidence': eligibility_dict.get('ResultConfidence'), 'cv_file_path': HACK_DOMAIN + candidate_profile_obj.file_path})
-                        job_status = CandidateJobStatus.objects.filter(job=job_obj, candidate_profile=candidate_profile_obj).first()
-                        job_status.status = 'cv_shortlisted'
-                        job_status.save()
+                    # elif not eligibility_dict.get('Eligible') and (int(eligibility_dict.get('ResultConfidence')[:-1]) < 30):
+                    #     candidates_phone_numbers_list.append({'name': candidate_profile_obj.candidate_name, 'phone_number': candidate_profile_obj.phone_number, 'result_reason': eligibility_dict.get('Reason'), 'confidence': eligibility_dict.get('ResultConfidence'), 'cv_file_path': HACK_DOMAIN + candidate_profile_obj.file_path})
+                    #     job_status = CandidateJobStatus.objects.filter(job=job_obj, candidate_profile=candidate_profile_obj).first()
+                    #     job_status.status = 'cv_shortlisted'
+                    #     job_status.save()
                     
                     response['status'] = 200
                     response['selected_candidates'] = candidates_phone_numbers_list
                 except Exception as e:
                     exc_type, exc_obj, exc_tb = sys.exc_info()
-                    print(e, exc_tb.tb_lineno)
+                    logger.error("CVShortlistingAPI 1 %s at %s", str(e), str(exc_tb.tb_lineno), extra={'AppName': 'hack'})
 
         except Exception as e:
             exc_type, exc_obj, exc_tb = sys.exc_info()
-            print(e, exc_tb.tb_lineno)
+            logger.error("CVShortlistingAPI 2 %s at %s", str(e), str(exc_tb.tb_lineno), extra={'AppName': 'hack'})
         return Response(data=response, status=response['status'])
 
 CVShortlisting = CVShortlistingAPI.as_view()

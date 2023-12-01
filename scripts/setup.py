@@ -15,7 +15,7 @@ from hack.views import logger
 from exohack.settings import BASE_DIR
 from hack.text_extraction import *
 
-from scripts.job_description import DATA_SCIENTIST, SOFTWARE_ENGINEER
+from scripts.job_description import DATA_SCIENTIST, SOFTWARE_ENGINEER, SALES
 
 try:
     from django.contrib.auth import get_user_model
@@ -40,6 +40,12 @@ def setup():
             name="Rahul", phone="918074928457", file_path="media/cv2.pdf")
         analyze_general_documents(
             name="Jana", phone="918074928457", file_path="media/cv1.pdf")
+        analyze_general_documents(
+            name="Manish", phone="918074928457", file_path="media/cv6.pdf")
+        analyze_general_documents(
+            name="Ron", phone="918074928457", file_path="media/cv7.pdf")
+        analyze_general_documents(
+            name="Ruhi", phone="918074928457", file_path="media/cv8.pdf")
 
         user = User.objects.create(
             username='admin', password='adminadmin', email="admin@exotel.com")
@@ -48,6 +54,8 @@ def setup():
                                job_description=DATA_SCIENTIST)
         JobData.objects.create(job_title="Software Engineer",
                                job_description=SOFTWARE_ENGINEER)
+        JobData.objects.create(job_title="Sales Agent",
+                               job_description=SALES)
 
         job_datas = JobData.objects.all()
         candidate_profiles = CandidateProfile.objects.all()
@@ -79,3 +87,5 @@ def reset():
         exc_type, exc_obj, exc_tb = sys.exc_info()
         logger.error("reset %s at %s",
                      str(err), str(exc_tb.tb_lineno), extra={'AppName': 'hack'})
+
+reset()
