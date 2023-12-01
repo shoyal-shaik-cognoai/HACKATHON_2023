@@ -17,6 +17,11 @@ class CandidateProfile(models.Model):
 
     confidence_percentage = models.CharField(null=True, blank=True, max_length=10)
 
+    questions_to_be_asked = models.TextField(
+        null=True, blank=True, help_text="questions_to_be_asked")
+
+    is_screening_done = models.BooleanField(default=False)
+
     def __str__(self):
         return self.candidate_name
 
@@ -49,6 +54,8 @@ class CandidateJobStatus(models.Model):
     candidate_profile = models.ForeignKey('CandidateProfile', null=True, blank=True, on_delete=models.SET_NULL)
 
     job = models.ForeignKey('JobData', null=True, blank=True, on_delete=models.SET_NULL)
+
+    call_screening_score = models.IntegerField(null=True, blank=True, help_text="call_screening_score")
 
     def __str__(self):
         return str(self.status) + " - " + str(self.candidate_profile.candidate_name) + " - " + str(self.job.job_title)
