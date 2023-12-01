@@ -4,6 +4,7 @@ import sys
 from django.shortcuts import render
 import json
 from hack.models import CandidateProfile, JobData
+from hack.utils import call_campaign
 from rest_framework.views import APIView
 from rest_framework.response import Response
 import openai
@@ -244,3 +245,19 @@ class GetJobDataAPI(APIView):
 
         return Response(data=response, status=response['status'])
 GetJobData = GetJobDataAPI.as_view()
+
+
+class InitiateCallCampaignAPI(APIView):
+    @csrf_exempt
+    def post(self, request, *args, **kwargs):
+        response = {}
+        response['status'] = 500
+        try:
+            req_data = request.data
+            list_of_phone_numbers = req_data.get('list_of_phone_numbers', [])
+            for num in list_of_phone_numbers:
+                call_campaign(num)
+        except Exception as e:
+            exc_type, exc_obj, exc_tb = sys.exc_info()
+            logger.error("GetJobDataAPI %s at %s", str(e), str(exc_tb.tb_lineno), extra={'AppName': 'hack'})
+InitiateCallCampaign = InitiateCallCampaignAPI.as_view()

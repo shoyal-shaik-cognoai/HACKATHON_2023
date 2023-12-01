@@ -22,8 +22,3 @@ def call_campaign(receiver_num):
     except Exception as e:
         _, _, exc_tb = sys.exc_info()
         print('Error in call_campaign', e, 'at', exc_tb.tb_lineno)
-
-# num_list = ['7988822020', '8074928457', '7506333280', '9720454250', '9920262298', '8181012821', '8859313763'] 
-num_list = ['918074928457']
-for num in set(num_list):
-    call_campaign(num)

@@ -291,12 +291,12 @@ class ExoDevWebSocketConsumer(AsyncWebsocketConsumer):
             self.thread = None
             self.speech_recognizer.recognized.connect(self.get_recognised_transcribed_text)
             self.speech_recognizer.recognizing.connect(self.get_recognising_text)
-            self.speech_recognizer.session_started.connect(lambda evt: logger.info("Socket connected on ExoDevWebSocketConsumer STARTED %s ", str(evt), extra={'AppName': 'EasyAssist'}))
-            self.speech_recognizer.session_stopped.connect(lambda evt: logger.info("Socket connected on ExoDevWebSocketConsumer STOPED %s ", str(evt), extra={'AppName': 'EasyAssist'}))
-            self.speech_recognizer.canceled.connect(lambda evt: logger.info("Socket connected on ExoDevWebSocketConsumer CANCLED %s ", str(evt), extra={'AppName': 'EasyAssist'}))
+            self.speech_recognizer.session_started.connect(lambda evt: logger.info("Socket connected on ExoDevWebSocketConsumer STARTED %s ", str(evt), extra={'AppName': 'hack'}))
+            self.speech_recognizer.session_stopped.connect(lambda evt: logger.info("Socket connected on ExoDevWebSocketConsumer STOPED %s ", str(evt), extra={'AppName': 'hack'}))
+            self.speech_recognizer.canceled.connect(lambda evt: logger.info("Socket connected on ExoDevWebSocketConsumer CANCLED %s ", str(evt), extra={'AppName': 'hack'}))
             self.speech_recognizer.start_continuous_recognition_async()
 
-        logger.info("Socket connected on ExoDevWebSocketConsumer", extra={'AppName': 'EasyAssist'})
+        logger.info("Socket connected on ExoDevWebSocketConsumer", extra={'AppName': 'hack'})
 
     async def disconnect(self, close_code):
         if self.use_azure:
@@ -306,7 +306,7 @@ class ExoDevWebSocketConsumer(AsyncWebsocketConsumer):
         self.recognised_transcript = ""
         self.stream_sid = None
         await self.close()
-        logger.info("Socket disconnected on ExoDevWebSocketConsumer", extra={'AppName': 'EasyAssist'})
+        logger.info("Socket disconnected on ExoDevWebSocketConsumer", extra={'AppName': 'hack'})
 
     async def receive(self, text_data):
         text_data_json = json.loads(text_data)
@@ -325,7 +325,7 @@ class ExoDevWebSocketConsumer(AsyncWebsocketConsumer):
             await self.handle_media(text_data_json)
         elif event == "start":
                 logger.info("Start event received on ExoWebSocketConsumer %s", str(text_data_json),
-                            extra={'AppName': 'EasyAssist'})
+                            extra={'AppName': 'hack'})
                 start_json = text_data_json.get('start', "")
                 if start_json:
                     self.call_sid = start_json.get("call_sid", "")
@@ -386,9 +386,9 @@ class ExoDevWebSocketConsumer(AsyncWebsocketConsumer):
 
                         if chunk['choices'][0]['delta']["content"].strip() == ".":
                             logger.info("LLM function chunk %s", str(
-                                chunk['choices'][0]['delta']["content"]), extra={'AppName': 'EasyAssist'})
+                                chunk['choices'][0]['delta']["content"]), extra={'AppName': 'hack'})
                             logger.info("Old Query Text %s", str(
-                                previous_streamed_text), extra={'AppName': 'EasyAssist'})
+                                previous_streamed_text), extra={'AppName': 'hack'})
                             is_tts_called = True
                             await self.get_text_to_speech_data(previous_streamed_text)
                             previous_streamed_text = ""
@@ -409,7 +409,7 @@ class ExoDevWebSocketConsumer(AsyncWebsocketConsumer):
         except Exception as e:
             exc_type, exc_obj, exc_tb = sys.exc_info()
             logger.error("Error in get_conversation_summary in ExoDevWebSocketConsumer %s at %s", str(
-                e), str(exc_tb.tb_lineno), extra={'AppName': 'EasyAssist'})
+                e), str(exc_tb.tb_lineno), extra={'AppName': 'hack'})
 
     async def get_qualification_score(self):
         prompt = """
@@ -449,7 +449,7 @@ class ExoDevWebSocketConsumer(AsyncWebsocketConsumer):
             "reason": "callended"
         }}))
         await self.close()
-        logger.info("Stop event sent", extra={'AppName': 'EasyAssist'})
+        logger.info("Stop event sent", extra={'AppName': 'hack'})
 
 
     @sync_to_async
@@ -502,7 +502,7 @@ class ExoDevWebSocketConsumer(AsyncWebsocketConsumer):
 
                             if chunk['choices'][0]['delta']["content"].strip() == ".":
                                 logger.info("LLM function chunk %s", str(
-                                    chunk['choices'][0]['delta']["content"]), extra={'AppName': 'EasyAssist'})
+                                    chunk['choices'][0]['delta']["content"]), extra={'AppName': 'hack'})
                                 is_tts_called = True
                                 # await self.get_text_to_speech_data(previous_streamed_text)
                                 previous_streamed_text = ""
@@ -550,29 +550,29 @@ class ExoDevWebSocketConsumer(AsyncWebsocketConsumer):
             print(e, str(exc_tb.tb_lineno))
 
     def get_recognised_transcribed_text(self, event: speechsdk.SessionEventArgs):
-        logger.info("get_recognised_transcribed_text is called in ExoDevWebSocketConsumer", extra={'AppName': 'EasyAssist'})
+        logger.info("get_recognised_transcribed_text is called in ExoDevWebSocketConsumer", extra={'AppName': 'hack'})
         try:
             if event.result.text.strip():
                 self.recognised_transcript = event.result.text
                 self.speech_interval = time.time()
-                logger.info("get_recognised_transcribed_text is called in ExoDevWebSocketConsumer %s", event.result.text, extra={'AppName': 'EasyAssist'})
+                logger.info("get_recognised_transcribed_text is called in ExoDevWebSocketConsumer %s", event.result.text, extra={'AppName': 'hack'})
         except KeyError as e:
             exc_type, exc_obj, exc_tb = sys.exc_info()
-            logger.error("Error in get_recognised_transcribed_text ExoDevWebSocketConsumer %s at %s", str(e), str(exc_tb.tb_lineno), extra={'AppName': 'EasyAssist'})
+            logger.error("Error in get_recognised_transcribed_text ExoDevWebSocketConsumer %s at %s", str(e), str(exc_tb.tb_lineno), extra={'AppName': 'hack'})
 
     def get_recognising_text(self, event: speechsdk.SessionEventArgs):
-        logger.info("get_recognising_text is called in ExoDevWebSocketConsumer %s", str(event), extra={'AppName': 'EasyAssist'})
+        logger.info("get_recognising_text is called in ExoDevWebSocketConsumer %s", str(event), extra={'AppName': 'hack'})
         try:
             if event.result.text.strip():
                 self.need_to_send_clear_packet = True
-                logger.info("get_recognising_text is called in ExoDevWebSocketConsumer %s", event.result.text, extra={'AppName': 'EasyAssist'})
+                logger.info("get_recognising_text is called in ExoDevWebSocketConsumer %s", event.result.text, extra={'AppName': 'hack'})
         except KeyError as e:
             exc_type, exc_obj, exc_tb = sys.exc_info()
-            logger.error("Error in get_recognising_text ExoDevWebSocketConsumer %s at %s", str(e), str(exc_tb.tb_lineno), extra={'AppName': 'EasyAssist'})
+            logger.error("Error in get_recognising_text ExoDevWebSocketConsumer %s at %s", str(e), str(exc_tb.tb_lineno), extra={'AppName': 'hack'})
 
     async def clear_sent_audio_chunk(self):
         await self.send(json.dumps({'event': 'clear', 'stream_sid': self.stream_sid}))
-        logger.info("Clear audio packet sent", extra={'AppName': 'EasyAssist'})
+        logger.info("Clear audio packet sent", extra={'AppName': 'hack'})
 
     async def send_audio_chunk(self, audio_chunk):
         await self.send(json.dumps({
@@ -604,4 +604,4 @@ class ExoDevWebSocketConsumer(AsyncWebsocketConsumer):
         except KeyError as e:
             exc_type, exc_obj, exc_tb = sys.exc_info()
             print(e, exc_tb.tb_lineno)
-            logger.error("Error in get_text_to_speech_data ExoDevWebSocketConsumer %s at %s", str(e), str(exc_tb.tb_lineno), extra={'AppName': 'EasyAssist'})
+            logger.error("Error in get_text_to_speech_data ExoDevWebSocketConsumer %s at %s", str(e), str(exc_tb.tb_lineno), extra={'AppName': 'hack'})
