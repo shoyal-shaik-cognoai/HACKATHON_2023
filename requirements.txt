@@ -7,7 +7,10 @@ msgpack==1.0.7
 redis==5.0.1
 sqlparse==0.4.4
 typing_extensions==4.8.0
+<<<<<<< HEAD
 azure-identity==1.13.0
 azure-search-documents==11.4.0b6
 azure-ai-formrecognizer==3.3.0
+=======
+>>>>>>> 6cf7cc5c26a1892f3539f764d2168c2dcbbf6998
 djangorestframework

@@ -7,6 +7,10 @@ from hack.models import CandidateProfile
 from rest_framework.views import APIView
 from rest_framework.response import Response
 import openai
+import logging
+import sys
+
+logger = logging.getLogger(__name__)
 
 # Create your views here.
 
@@ -23,7 +27,6 @@ class StartIndexingAPI(APIView):
             print(e)
 
 StartIndexing = StartIndexingAPI.as_view()
-
 
 class UploadCVsAPI(APIView):
     def post(self, request, *args, **kwargs):
@@ -129,3 +132,20 @@ class CVShortlistingAPI(APIView):
         return Response(data=response, status=response['status'])
 
 CVShortlisting = CVShortlistingAPI.as_view()
+
+
+def TestPage(request):
+    try:
+
+        logger.info("testing logs.", extra={'AppName': 'hack'})
+
+        return render(request, 'hack/test.html', {
+            'year': '2023'
+        })
+
+    except Exception as e:
+        exc_type, exc_obj, exc_tb = sys.exc_info()
+        logger.error("ECCTimeLine %s at %s",
+                     str(e), str(exc_tb.tb_lineno), extra={'AppName': 'hack'})
+        # return HttpResponse("500")
+        return render(request, 'EasyChatApp/error_500.html')
