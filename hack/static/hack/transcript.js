@@ -130,25 +130,30 @@ function addJobRoles(data) {
     cell1.addEventListener('click', getJobDesc)
     const cell2 = document.createElement("td");
     cell2.textContent = "5";
-    const cell3 = document.createElement("td");
-    var inputElement = document.createElement('input');
-    inputElement.type = 'number';
-    inputElement.placeholder = 'Enter Relevance...';
-    cell3.appendChild(inputElement);
     const cell4 = document.createElement("td");
     cell4.textContent = '15'
     var inputButton = document.createElement("button");
-    inputButton.innerHTML = "Shortlist"
+    if(data[x].status == "pending"){
+      inputButton.innerHTML = "Shortlist"
+    }else{
+      inputButton.innerHTML = "Open List"
+    }
     inputButton.id = data[x].job_pk
     inputButton.addEventListener('click', openOverlay);
     const cell5 = document.createElement("td")
     cell5.appendChild(inputButton)
     const cell6 = document.createElement("td");
-    cell6.textContent = "pending"
+    if(data[x].status == "pending"){
+      cell6.textContent = data[x].status
+    }else if(data[x].status == "resume_shortlist"){
+      cell6.textContent = "Resume Shortlisted"
+    }else{
+      cell6.textContent = "Candidates Shortlisted"
+    }
+    
     cell6.id = "status"
     newRow.appendChild(cell1);
     newRow.appendChild(cell2);
-    newRow.appendChild(cell3);
     newRow.appendChild(cell4);
     newRow.appendChild(cell5);
     newRow.appendChild(cell6);
@@ -235,6 +240,8 @@ async function shortlist_candidate(jobId) {
     loader.style.display = "none";
     document.getElementById("overlay").style.display = "block";
     addRows(data.selected_candidates);
+    var status = document.getElementById("status");
+    status.innerHTML = "resume shortlisted"
   } catch (error) {
     console.error("Error:", error);
   }
