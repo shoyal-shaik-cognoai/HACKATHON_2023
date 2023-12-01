@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link href='https://fonts.googleapis.com/css?family=Bubblegum Sans' rel='stylesheet'>
+    <link href='https://fonts.googleapis.com/css?family=Sofia' rel='stylesheet'>
+    <script src="script.js" defer></script>
+    <link rel="stylesheet" type="text/css" href="styles.css">
+    <style>
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <h1>Exohire</h1>
+    <h5>-your hiring solution</h5>
+</div>
+
+<table class="data-table">
+    <thead>
+        <tr>
+            <th>Job Role</th>
+            <th>Openings</th>
+            <th>Relevance</th>
+            <th>Resumes Received</th>
+            <th>Action</th>
+            <th>Status</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr class="data-row" onclick="openOverlay()">
+            <td>Software Engineer</td>
+            <td><input type="number" value="5" disabled /></td>
+            <td><input type="number" value="80" disabled /></td>
+            <td><input type="number" value="20" disabled /></td>
+            <td><button onclick="openOverlay()">Hire Now</button></td>
+            <td class="status-approved">resume shortlisted</td>
+        </tr>
+        <tr class="data-row" onclick="openOverlay()">
+            <td>data Engineer</td>
+            <td><input type="number" value="5" disabled /></td>
+            <td><input type="number" value="80" disabled /></td>
+            <td><input type="number" value="20" disabled /></td>
+            <td><button onclick="openOverlay()">Hire Now</button></td>
+            <td><span class="status-approved">resume shortlisted</span></td>
+        </tr>
+        <!-- Add more rows as needed -->
+    </tbody>
+</table>
+
+<div class="overlay" id="overlay">
+    <div class="overlay-content">
+        <span class="close-btn" onclick="closeOverlay()">&times;</span>
+        <!-- Interview Table -->
+        <table class="overlay-table active other">
+            <thead>
+                <tr>
+                    <th>Candidate Name</th>
+                    <th>Resume File</th>
+                    <th>Confidence %</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>John Doe</td>
+                    <td><a href="#" download="Resume_JohnDoe.pdf">Download</a></td>
+                    <td>85%</td>
+                </tr>
+                <tr>
+                    <td>Jane Smith</td>
+                    <td><a href="#" download="Resume_JaneSmith.pdf">Download</a></td>
+                    <td>92%</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <!-- Other Table (Hidden initially) -->
+        <table class="overlay-table interview">
+            <thead>
+                <tr>
+                    <th>Candidate Name</th>
+                    <th>Transcript</th>
+                    <th>Result</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Dummy row added dynamically after 2 seconds (simulate data loading) -->
+            </tbody>
+        </table>
+        <!-- Start Interviews button -->
+        <button class="start-interviews-btn" onclick="startInterviews()">Start Interviews</button>
+    </div>
+    <!-- Loader (Hidden initially) -->
+    <div class="loader"></div>
+</div>
+
+<script>
+</script>
+
+</body>
+</html>
