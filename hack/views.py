@@ -74,8 +74,8 @@ class CVShortlistingAPI(APIView):
             openai.api_type = "azure"
             openai.api_base = "https://gpt3-5-sc.openai.azure.com/"
             openai.api_version = "2023-07-01-preview"
-            model_used = "gpt-35-turbo-instruct"
-            deployment_id = "kb-test1"
+            model_used = "gpt-35-turbo-16k"
+            deployment_id = "hack-16k"
             candidate_profile_objs = CandidateProfile.objects.all()
             candidates_phone_numbers_list = []
             for candidate_profile_obj in candidate_profile_objs:
@@ -89,9 +89,11 @@ class CVShortlistingAPI(APIView):
                         Remember You need to provide will this person eligible based of user query just give yes or No?
                         If job post skills not present in the CV then the candidate is not eligible.
                         Remember You need to provide how confident are you on this just give here the percentage.
-                        Give in this format dictionary E.g. {"Name":"candidates name", "Eligible":true, "ResultConfidence":"40%" "Reason":"Person is sales person"
+                        NOTE: Give the result in this format python dictionary only nothing else this is a must 
+                        Example format of response: {"Name":"candidates name", "Eligible":true, "ResultConfidence":"40%" "Reason":"Person is sales person"
+                        keep the "Reason" inside the result dictionary short and concise within 50 words strictly.
 
-                        Resume is:
+                        Candidate resume is:
                     """ + candidate_profile_obj.cv_content
                     chat_history.append({'role': 'system', 'content': system_prompt})
                     if job_obj:
@@ -132,9 +134,9 @@ class CVShortlistingAPI(APIView):
                     candidate_profile_obj.save()
 
                     if eligibility_dict.get('Eligible') and (int(eligibility_dict.get('ResultConfidence')[:-1]) > 50):
-                        candidates_phone_numbers_list.append({'name': candidate_profile_obj.candidate_name, 'phone_number': candidate_profile_obj.phone_number, 'result_reason': eligibility_dict.get('Reason')})
+                        candidates_phone_numbers_list.append({'name': candidate_profile_obj.candidate_name, 'phone_number': candidate_profile_obj.phone_number, 'result_reason': eligibility_dict.get('Reason'), 'confidence': eligibility_dict.get('ResultConfidence')})
                     elif not eligibility_dict.get('Eligible') and (int(eligibility_dict.get('ResultConfidence')[:-1]) < 30):
-                        candidates_phone_numbers_list.append({'name': candidate_profile_obj.candidate_name, 'phone_number': candidate_profile_obj.phone_number, 'result_reason': eligibility_dict.get('Reason')})
+                        candidates_phone_numbers_list.append({'name': candidate_profile_obj.candidate_name, 'phone_number': candidate_profile_obj.phone_number, 'result_reason': eligibility_dict.get('Reason'), 'confidence': eligibility_dict.get('ResultConfidence')})
                     
                     response['status'] = 200
                     response['selected_candidates'] = candidates_phone_numbers_list
