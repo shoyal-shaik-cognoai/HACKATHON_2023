@@ -1,102 +1,379 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
+  <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link href='https://fonts.googleapis.com/css?family=Bubblegum Sans' rel='stylesheet'>
-    <link href='https://fonts.googleapis.com/css?family=Sofia' rel='stylesheet'>
-    <script src="script.js" defer></script>
-    <link rel="stylesheet" type="text/css" href="styles.css">
+    <link
+      href="https://fonts.googleapis.com/css?family=Bubblegum Sans"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css?family=Sofia"
+      rel="stylesheet"
+    />
     <style>
+      body {
+        font-family: Arial, sans-serif;
+        background-color: #f4f4f4;
+        margin: 0;
+        padding: 0;
+        transition: background-color 0.3s ease;
+      }
+
+      .header {
+        padding: 20px;
+        background-color: black;
+        color: #a0d2eb;
+        transition: background-color 0.3s ease;
+        text-shadow: 5px 5px 10px #000000;
+        letter-spacing: 4px;
+      }
+      h1 {
+        font-family: "Bubblegum Sans";
+        text-align: center;
+        margin-bottom: 5px;
+      }
+
+      .header h5 {
+        font-family: "Sofia";
+        text-align: right;
+        margin-right: 35%;
+        font-size: small;
+      }
+
+      .data-table {
+        width: 90%;
+        margin: 20px auto;
+        border-collapse: collapse;
+        background-color: #fff;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        transition: box-shadow 0.3s ease;
+      }
+
+      .data-table th,
+      .data-table td {
+        padding: 15px;
+        text-align: center;
+        border-bottom: 1px solid #ddd;
+      }
+
+      .data-table th:last-child,
+      .data-table td:last-child {
+        border-bottom: none;
+      }
+
+      .data-table tr:hover {
+        background-color: #f5f5f5;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+      }
+
+      .data-table button {
+        border: none;
+        background-color: transparent;
+        cursor: pointer;
+        outline: none;
+      }
+
+      .data-table input {
+        border: none;
+        border-bottom: 1px solid #ddd;
+        text-align: center;
+        transition: border-bottom 0.3s ease;
+        background: none;
+      }
+
+      .overlay {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.5);
+      }
+
+      .overlay-content {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 80%;
+        max-width: 600px;
+        background: #fff;
+        padding: 20px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        transition: transform 0.3s ease;
+      }
+
+      .overlay-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 20px;
+        display: none;
+      }
+
+      .overlay-table.active {
+        display: table;
+      }
+
+      .overlay-table th,
+      .overlay-table td {
+        padding: 15px;
+        text-align: center;
+        border-bottom: 1px solid #ddd;
+        background-color: #f9f9f9;
+      }
+
+      .overlay-table th:last-child,
+      .overlay-table td:last-child {
+        border-bottom: none;
+      }
+
+      .overlay-table tbody tr:hover {
+        background-color: #e0e0e0;
+      }
+
+      .close-btn {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        cursor: pointer;
+      }
+
+      .start-interviews-btn {
+        display: block;
+        margin: 20px auto;
+        padding: 10px 20px;
+        font-size: 16px;
+        background-color: #4caf50;
+        color: #fff;
+        border: none;
+        cursor: pointer;
+        border-radius: 5px;
+        transition: background-color 0.3s ease, transform 0.3s ease;
+      }
+
+      .start-interviews-btn:hover {
+        background-color: #45a049;
+        transform: scale(1.05);
+      }
+
+      .loader {
+        display: none;
+        border: 10px solid #f3f3f3; /* Light grey */
+        border-top: 10px solid #4e555a; /* Blue */
+        border-radius: 45%;
+        width: 80px;
+        height: 80px;
+        animation: spin 1s linear infinite;
+        position: absolute;
+        top: 47%;
+        left: 45%;
+        transform: translate(-50%, -50%);
+      }
+
+      @keyframes spin {
+        0% {
+          transform: rotate(0deg);
+        }
+        100% {
+          transform: rotate(360deg);
+        }
+      }
     </style>
-</head>
-<body>
+  </head>
+  <body>
+    <div class="header">
+      <h1>Exohire</h1>
+      <h5>-your hiring solution</h5>
+    </div>
 
-<div class="header">
-    <h1>Exohire</h1>
-    <h5>-your hiring solution</h5>
-</div>
-
-<table class="data-table">
-    <thead>
+    <table class="data-table">
+      <thead>
         <tr>
-            <th>Job Role</th>
-            <th>Openings</th>
-            <th>Relevance</th>
-            <th>Resumes Received</th>
-            <th>Action</th>
-            <th>Status</th>
+          <th>Job Role</th>
+          <th>Openings</th>
+          <th>Relevance</th>
+          <th>Resumes Received</th>
+          <th>Action</th>
+          <th>Status</th>
         </tr>
-    </thead>
-    <tbody>
+      </thead>
+      <tbody>
         <tr class="data-row" onclick="openOverlay()">
-            <td>Software Engineer</td>
-            <td><input type="number" value="5" disabled /></td>
-            <td><input type="number" value="80" disabled /></td>
-            <td><input type="number" value="20" disabled /></td>
-            <td><button onclick="openOverlay()">Hire Now</button></td>
-            <td class="status-approved">resume shortlisted</td>
+          <td>Software Engineer</td>
+          <td><input type="number" value="5" disabled /></td>
+          <td><input type="number" value="80" disabled /></td>
+          <td><input type="number" value="20" disabled /></td>
+          <td><button onclick="openOverlay()">Hire Now</button></td>
+          <td class="status-approved">resume shortlisted</td>
         </tr>
         <tr class="data-row" onclick="openOverlay()">
-            <td>data Engineer</td>
-            <td><input type="number" value="5" disabled /></td>
-            <td><input type="number" value="80" disabled /></td>
-            <td><input type="number" value="20" disabled /></td>
-            <td><button onclick="openOverlay()">Hire Now</button></td>
-            <td><span class="status-approved">resume shortlisted</span></td>
+          <td>data Engineer</td>
+          <td><input type="number" value="5" disabled /></td>
+          <td><input type="number" value="80" disabled /></td>
+          <td><input type="number" value="20" disabled /></td>
+          <td><button onclick="openOverlay()">Hire Now</button></td>
+          <td><span class="status-approved">resume shortlisted</span></td>
         </tr>
         <!-- Add more rows as needed -->
-    </tbody>
-</table>
+      </tbody>
+    </table>
 
-<div class="overlay" id="overlay">
-    <div class="overlay-content">
+    <div class="overlay" id="overlay">
+      <div class="overlay-content">
         <span class="close-btn" onclick="closeOverlay()">&times;</span>
         <!-- Interview Table -->
         <table class="overlay-table active other">
-            <thead>
-                <tr>
-                    <th>Candidate Name</th>
-                    <th>Resume File</th>
-                    <th>Confidence %</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <td>John Doe</td>
-                    <td><a href="#" download="Resume_JohnDoe.pdf">Download</a></td>
-                    <td>85%</td>
-                </tr>
-                <tr>
-                    <td>Jane Smith</td>
-                    <td><a href="#" download="Resume_JaneSmith.pdf">Download</a></td>
-                    <td>92%</td>
-                </tr>
-            </tbody>
+          <thead>
+            <tr>
+              <th>Candidate Name</th>
+              <th>Resume File</th>
+              <th>Confidence %</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>John Doe</td>
+              <td><a href="#" download="Resume_JohnDoe.pdf">Download</a></td>
+              <td>85%</td>
+            </tr>
+            <tr>
+              <td>Jane Smith</td>
+              <td><a href="#" download="Resume_JaneSmith.pdf">Download</a></td>
+              <td>92%</td>
+            </tr>
+          </tbody>
         </table>
 
         <!-- Other Table (Hidden initially) -->
         <table class="overlay-table interview">
-            <thead>
-                <tr>
-                    <th>Candidate Name</th>
-                    <th>Transcript</th>
-                    <th>Result</th>
-                </tr>
-            </thead>
-            <tbody>
-                <!-- Dummy row added dynamically after 2 seconds (simulate data loading) -->
-            </tbody>
+          <thead>
+            <tr>
+              <th>Candidate Name</th>
+              <th>Transcript</th>
+              <th>Result</th>
+            </tr>
+          </thead>
+          <tbody>
+            <!-- Dummy row added dynamically after 2 seconds (simulate data loading) -->
+          </tbody>
         </table>
         <!-- Start Interviews button -->
-        <button class="start-interviews-btn" onclick="startInterviews()">Start Interviews</button>
+        <button class="start-interviews-btn" onclick="startInterviews()">
+          Start Interviews
+        </button>
+      </div>
+      <!-- Loader (Hidden initially) -->
+      <div class="loader"></div>
     </div>
-    <!-- Loader (Hidden initially) -->
-    <div class="loader"></div>
-</div>
 
-<script>
-</script>
+    <script>
+      function startInterviews() {
+        const interviewTable = document.querySelector(
+          ".overlay-table.interview"
+        );
+        const otherTable = document.querySelector(".overlay-table.other");
+        const startInterviewButton = document.querySelector(
+          ".start-interviews-btn"
+        );
+        const loader = document.querySelector(".loader");
+        const hireNowButton = document.querySelector(".data-row button");
+        const statusApproved = document.querySelector(
+          ".data-row .status-approved"
+        );
+        const overlay = document.querySelector(".overlay-content");
 
-</body>
+        // Hide the current table and the button, and show the loader
+        otherTable.style.display = "none";
+        overlay.style.display = "none";
+        startInterviewButton.style.display = "none";
+        loader.style.display = "block";
+
+        // Simulate data loading after 2 seconds
+        setTimeout(() => {
+          // Hide the loader
+          loader.style.display = "none";
+
+          // Simulate loading data for the other table
+          // For now, let's add a dummy row after 2 seconds
+          const interviewTableBody = document.querySelector(
+            ".overlay-table.interview tbody"
+          );
+          const newRow = document.createElement("tr");
+          const cell1 = document.createElement("td");
+          cell1.textContent = "Loaded Candidate";
+          const cell2 = document.createElement("td");
+          cell2.textContent = "Loaded Transcript";
+          const cell3 = document.createElement("td");
+          cell3.textContent = "Loaded Result";
+          newRow.appendChild(cell1);
+          newRow.appendChild(cell2);
+          newRow.appendChild(cell3);
+          interviewTableBody.innerHTML = ""; // Clear existing data
+          interviewTableBody.appendChild(newRow);
+
+          // Show the other table
+          interviewTable.style.display = "table";
+
+          // Show the button again
+          startInterviewButton.style.display = "none";
+          overlay.style.display = "block";
+
+          // Update the "Hire Now" button and status in the data table
+          hireNowButton.disabled = true;
+          hireNowButton.textContent = "Done";
+          statusApproved.textContent = "Check Results";
+        }, 2000);
+      }
+
+      function getCandidateData() {
+        fetch("/get_candidate_data/", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        })
+          .then((response) => response.json())
+          .then((data) => {
+            console.log(data);
+          })
+          .catch((error) => {
+            console.error("Error:", error);
+          });
+      }
+
+      getCandidateData();
+
+      /*function checkData() {
+    const startInterviewButton = document.querySelector('.start-interviews-btn');
+    if (startInterviewButton.style.display == "none"){
+        return
+    }
+    const otherTable = document.querySelector('.overlay-table.other');
+    const interviewTableBody = document.querySelector('.overlay-table.other tbody');
+    const newRow = document.createElement('tr');
+    const cell1 = document.createElement('td');
+    cell1.textContent = 'Loaded Candidate';
+    const cell2 = document.createElement('td');
+    cell2.textContent = 'Loaded Transcript';
+    const cell3 = document.createElement('td');
+    cell3.textContent = 'Loaded Result';
+    newRow.appendChild(cell1);
+    newRow.appendChild(cell2);
+    newRow.appendChild(cell3);
+    interviewTableBody.innerHTML = ''; // Clear existing data
+    interviewTableBody.appendChild(newRow);
+}*/
+
+      function openOverlay() {
+        document.getElementById("overlay").style.display = "block";
+      }
+
+      function closeOverlay() {
+        document.getElementById("overlay").style.display = "none";
+      }
+    </script>
+  </body>
 </html>
