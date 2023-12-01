@@ -1,0 +1,222 @@
+
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f4f4f4;
+    margin: 0;
+    padding: 0;
+    transition: background-color 0.3s ease;
+  }
+  
+  .header {
+    padding: 10px;
+    background-color: black;
+    color: #a0d2eb;
+    transition: background-color 0.3s ease;
+    text-shadow: 5px 5px 10px #000000;
+  }
+  h1 {
+    font-family: "Bubblegum Sans";
+    text-align: center;
+    text-shadow: 5px 5px 10px #190eb4;
+    margin-bottom: 5px;
+    letter-spacing: 4px;
+  }
+  
+  .header h5 {
+    font-family: "Sofia";
+    text-align: right;
+    margin-right: 35%;
+    font-size: small;
+    letter-spacing: 2px;
+  }
+  
+  .data-table {
+    width: 90%;
+    margin: 20px auto;
+    border-collapse: collapse;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    transition: box-shadow 0.3s ease;
+  }
+  
+  .data-table th,
+  .data-table td {
+    padding: 15px;
+    text-align: center;
+    border-bottom: 1px solid #ddd;
+  }
+  
+  .data-table th:last-child,
+  .data-table td:last-child {
+    border-bottom: none;
+  }
+  
+  .data-table tr:hover {
+    background-color: #f5f5f5;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+  }
+  
+  .data-table button {
+    border: none;
+    background-color: transparent;
+    cursor: pointer;
+    outline: none;
+  }
+  
+  .data-table input {
+    border: none;
+    border-bottom: 1px solid #ddd;
+    text-align: center;
+    transition: border-bottom 0.3s ease;
+    background: none;
+  }
+  
+  .overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+  }
+  
+  .overlay-content {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 80%;
+    max-width: 600px;
+    background: #fff;
+    padding: 20px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s ease;
+  }
+  
+  .overlay-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+    display: none;
+  }
+  
+  .overlay-table.active {
+    display: table;
+  }
+  
+  .overlay-table th,
+  .overlay-table td {
+    padding: 15px;
+    text-align: center;
+    border-bottom: 1px solid #ddd;
+    background-color: #f9f9f9;
+  }
+  
+  .overlay-table th:last-child,
+  .overlay-table td:last-child {
+    border-bottom: none;
+  }
+  
+  .overlay-table tbody tr:hover {
+    background-color: #e0e0e0;
+  }
+  
+  .close-btn {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    cursor: pointer;
+  }
+  
+  .start-interviews-btn {
+    display: block;
+    margin: 20px auto;
+    padding: 10px 20px;
+    font-size: 16px;
+    background-color: #4caf50;
+    color: #fff;
+    border: none;
+    cursor: pointer;
+    border-radius: 5px;
+    transition: background-color 0.3s ease, transform 0.3s ease;
+  }
+  
+  .start-interviews-btn:hover {
+    background-color: #45a049;
+    transform: scale(1.05);
+  }
+  
+  .loader {
+    display: none;
+    border: 10px solid #f3f3f3; /* Light grey */
+    border-top: 10px solid #4e555a; /* Blue */
+    border-radius: 45%;
+    width: 80px;
+    height: 80px;
+    animation: spin 1s linear infinite;
+    position: absolute;
+    top: 47%;
+    left: 45%;
+    transform: translate(-50%, -50%);
+  }
+  
+  @keyframes spin {
+    0% {
+      transform: rotate(0deg);
+    }
+    100% {
+      transform: rotate(360deg);
+    }
+  }
+  input {
+    outline: none;
+    cursor: pointer;
+  }
+  input[type="number"] {
+    -moz-appearance: textfield; /* Firefox */
+  }
+  
+  /* Remove the increment/decrement arrows in WebKit browsers */
+  input[type="number"]::-webkit-inner-spin-button,
+  input[type="number"]::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+  
+  /* Styles for the modal */
+  .modal {
+    display: none;
+    position: fixed;
+    z-index: 1;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0, 0, 0, 0.5);
+  }
+  
+  .modal-content {
+    background-color: #fefefe;
+    margin: 15% auto;
+    padding: 20px;
+    border: 1px solid #888;
+    width: 80%;
+  }
+  
+  .close {
+    color: #aaa;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+    cursor: pointer;
+  }
+  
+  .close:hover,
+  .close:focus {
+    color: black;
+    text-decoration: none;
+    cursor: pointer;
+  }
+  
