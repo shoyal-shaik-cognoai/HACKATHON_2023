@@ -9,6 +9,8 @@ from rest_framework.response import Response
 import openai
 import logging
 import sys
+from django.views.decorators.csrf import csrf_exempt
+
 
 from exohack.settings import HACK_DOMAIN
 
@@ -147,13 +149,13 @@ class CVShortlistingAPI(APIView):
 
 CVShortlisting = CVShortlistingAPI.as_view()
 
-
+@csrf_exempt
 def HomePage(request):
     try:
 
         logger.info("testing logs.", extra={'AppName': 'hack'})
 
-        return render(request, 'hack/test.html', {
+        return render(request, 'hack/transcript.html', {
             'year': '2023'
         })
 
@@ -166,6 +168,7 @@ def HomePage(request):
 
 
 class GetCandidateDataAPI(APIView):
+    @csrf_exempt
     def post(self, request, *args, **kwargs):
         response = {}
         response['status'] = 500
@@ -195,6 +198,7 @@ class GetCandidateDataAPI(APIView):
 GetCandidateData = GetCandidateDataAPI.as_view()
 
 class GetJobDataAPI(APIView):
+    @csrf_exempt
     def post(self, request, *args, **kwargs):
         response = {}
         response['status'] = 500

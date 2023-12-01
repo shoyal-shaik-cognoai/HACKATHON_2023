@@ -8,7 +8,6 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('cv-short-list-query/', views.CVShortlisting),
     path('upload-cv/', views.UploadCV),
-    path('admin/', admin.site.urls),
     re_path(r'^', include('hack.urls')),
 ]
 
