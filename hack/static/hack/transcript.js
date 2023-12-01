@@ -1,11 +1,13 @@
+var loader = document.querySelector(".loader");
+
 function startInterviews() {
   const interviewTable = document.querySelector(".overlay-table.interview");
   const otherTable = document.querySelector(".overlay-table.other");
   const startInterviewButton = document.querySelector(".start-interviews-btn");
-  const loader = document.querySelector(".loader");
   const hireNowButton = document.querySelector(".data-row button");
   const statusApproved = document.querySelector(".data-row .status-approved");
   const overlay = document.querySelector(".overlay-content");
+  
 
   // Hide the current table and the button, and show the loader
   otherTable.style.display = "none";
@@ -52,6 +54,7 @@ function startInterviews() {
 
 function addRows(data) {
   const otherTableBody = document.querySelector(".overlay-table.other tbody");
+  otherTableBody.innerHTML = ""
   for (let x in data) {
     const newRow = document.createElement("tr");
     const cell1 = document.createElement("td");
@@ -63,7 +66,7 @@ function addRows(data) {
     const cell2 = document.createElement("td");
     cell2.appendChild(resumeLink);
     const cell3 = document.createElement("td");
-    cell3.textContent = "75%";
+    cell3.textContent = data[x].confidence;
     newRow.appendChild(cell1);
     newRow.appendChild(cell2);
     newRow.appendChild(cell3);
@@ -135,8 +138,8 @@ function addJobRoles(data) {
     const cell4 = document.createElement("td");
     cell4.textContent = '15'
     var inputButton = document.createElement("button");
-    inputButton.innerHTML = "Hire Now"
-    inputButton.id = data[x].job_title
+    inputButton.innerHTML = "Shortlist"
+    inputButton.id = data[x].job_pk
     inputButton.addEventListener('click', openOverlay);
     const cell5 = document.createElement("td")
     cell5.appendChild(inputButton)
@@ -171,15 +174,18 @@ function getJobRoles() {
 }
 getJobRoles();
 function getCandidateData() {
+  const job_id = this.id;
   fetch("/get-candidate-data/", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
     },
+    body: JSON.stringify({job_id}),
   })
     .then((response) => response.json())
     .then((data) => {
       console.log(data);
+      document.getElementById("overlay").style.display = "block";
       addRows(data.data);
     })
     .catch((error) => {
@@ -187,11 +193,63 @@ function getCandidateData() {
     });
 }
 
-getCandidateData();
+// function shortlist_candidate(jobId) {
+//   fetch(`/cv-short-list-query/?job_pk=${String(jobId)}`, {
+//     method: "GET",
+//     headers: {
+//       "Content-Type": "application/json",
+//     },
+//   })
+//     .then((response) => response.json())
+//     .then((data) => {
+//       const loader = document.querySelector(".loader");
+//       loader.style.display = "none";
+//       document.getElementById("overlay").style.display = "block";
+//       addRows(data.selected_candidates);
+//     })
+//     .catch((error) => {
+//       console.error("Error:", error);
+//     });
+// }
+
+async function shortlist_candidate(jobId) {
+  try {
+    const loader = document.querySelector(".loader");
+    const bodyElement = document.querySelector('body');
+    loader.style.display = "block";
+    bodyElement.style.backgroundColor = 'rgba(255, 255, 255, 0.7)';
+    bodyElement.style.zIndex = 9999
+
+    const response = await fetch(`/cv-short-list-query/?job_pk=${String(jobId)}`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP request failed with status: ${response.status}`);
+    }
+
+    const data = await response.json();
+
+    loader.style.display = "none";
+    document.getElementById("overlay").style.display = "block";
+    addRows(data.selected_candidates);
+  } catch (error) {
+    console.error("Error:", error);
+  }
+}
 
 function openOverlay() {
-  document.getElementById("overlay").style.display = "block";
-  addRows();
+  if(this.innerHTML == "Shortlist"){
+    shortlist_candidate(this.id)
+    this.innerHTML = "Open List"
+  }else{
+    getCandidateData()
+  }
+  // document.getElementById("overlay").style.display = "block";
+  // addRows();
 }
 
 function closeOverlay() {

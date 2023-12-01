@@ -134,9 +134,9 @@ class CVShortlistingAPI(APIView):
                     candidate_profile_obj.save()
 
                     if eligibility_dict.get('Eligible') and (int(eligibility_dict.get('ResultConfidence')[:-1]) > 50):
-                        candidates_phone_numbers_list.append({'name': candidate_profile_obj.candidate_name, 'phone_number': candidate_profile_obj.phone_number, 'result_reason': eligibility_dict.get('Reason'), 'confidence': eligibility_dict.get('ResultConfidence')})
+                        candidates_phone_numbers_list.append({'name': candidate_profile_obj.candidate_name, 'phone_number': candidate_profile_obj.phone_number, 'result_reason': eligibility_dict.get('Reason'), 'confidence': eligibility_dict.get('ResultConfidence'), 'cv_file_path': HACK_DOMAIN + candidate_profile_obj.file_path})
                     elif not eligibility_dict.get('Eligible') and (int(eligibility_dict.get('ResultConfidence')[:-1]) < 30):
-                        candidates_phone_numbers_list.append({'name': candidate_profile_obj.candidate_name, 'phone_number': candidate_profile_obj.phone_number, 'result_reason': eligibility_dict.get('Reason'), 'confidence': eligibility_dict.get('ResultConfidence')})
+                        candidates_phone_numbers_list.append({'name': candidate_profile_obj.candidate_name, 'phone_number': candidate_profile_obj.phone_number, 'result_reason': eligibility_dict.get('Reason'), 'confidence': eligibility_dict.get('ResultConfidence'), 'cv_file_path': HACK_DOMAIN + candidate_profile_obj.file_path})
                     
                     response['status'] = 200
                     response['selected_candidates'] = candidates_phone_numbers_list
@@ -182,7 +182,8 @@ class GetCandidateDataAPI(APIView):
                 curr_data = {
                     "name": candidate_profile_obj.candidate_name,
                     "phone_number": candidate_profile_obj.phone_number,
-                    "cv_file_path": HACK_DOMAIN + candidate_profile_obj.file_path
+                    "cv_file_path": HACK_DOMAIN + candidate_profile_obj.file_path,
+                    "confidence": candidate_profile_obj.confidence_percentage
                 }
 
                 req_data.append(curr_data)
