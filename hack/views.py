@@ -256,6 +256,7 @@ class InitiateCallCampaignAPI(APIView):
             req_data = request.data
             list_of_phone_numbers = req_data.get('list_of_phone_numbers', [])
             for num in list_of_phone_numbers:
+                candidate_profile_obj = CandidateProfile.objects.filter(phone_number=num).first()
                 call_campaign(num)
         except Exception as e:
             exc_type, exc_obj, exc_tb = sys.exc_info()
