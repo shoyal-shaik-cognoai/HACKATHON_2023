@@ -85,30 +85,48 @@ class CVShortlistingAPI(APIView):
             for candidate_profile_obj in candidate_profile_objs:
                 try:
                     chat_history = []
-                    system_prompt = """You are HR at a Tech Company who is really strict in shortlist CVs.
-                        You will be given a CV in Source, your job is to provide is that CV eligible base on job post.
-                        You should look into all the aspects like skills are they related to the job post. 
-                        Their past working experience are they related to the job post.
-                        When asked on job role you need to very specific a techie can't be a sales and a sales guys can't be a techie.
-                        Remember You need to provide will this person eligible based of user query just give yes or No?
-                        If job post skills not present in the CV then the candidate is not eligible.
-                        Remember You need to provide how confident are you on this just give here the percentage.
-                        NOTE: Give the result in this format python dictionary only nothing else this is a must 
-                        Example format of response: {"Name":"candidates name", "Eligible":true, "ResultConfidence":"40%" "Reason":"Person is sales person"
-                        keep the "Reason" inside the result dictionary short and concise within 50 words strictly.
+                    # system_prompt = """You are HR at a Tech Company who is really strict in shortlist Resumes.
+                    #     You will be given a Resumes in Source, your job is to provide is that Resumes eligible base on job post.
+                    #     You should look into all the aspects like skills are they related to the job post. 
+                    #     Their past working experience are they related to the job post.
+                    #     When asked on job role you need to very specific a techie can't be a sales and a sales guys can't be a techie.
+                    #     Remember You need to provide will this person eligible based of user query just give yes or No?
+                    #     If job post skills not present in the Resumes then the candidate is not eligible.
+                    #     Remember You need to provide how confident are you on this candidate just give here the percentage as ResultConfidence in range 0 to 100 percentage and all should ne unique it is a must.
+                    #     NOTE: Give the result in this format python dictionary only nothing else this is a must.
+                    #     Example format of response: {"Name":"candidates name", "Eligible":true, "ResultConfidence":"20%" "Reason":"Person is sales person".
+                    #     keep the "Reason" inside the result dictionary short and concise within 50 words strictly.
 
-                        Candidate resume is:
+                    #    Source:
+                    # """ + candidate_profile_obj.cv_content
+                    # chat_history.append({'role': 'system', 'content': system_prompt})
+                    # if job_obj:
+                    #     chat_history.append({'role': 'user', 'content': f"Job Description is : {job_obj.job_description} and Job Role is: "})
+                    # else:
+                    #     chat_history.append({'role': 'user', 'content': short_list_query})
+
+                    system_prompt = """You're an HR professional at a tech company known for stringent resume shortlisting. Your task is to evaluate resumes based on job posts, considering skills, relevant experience, and job roles. Respond with a simple 'Yes' or 'No' to indicate eligibility.
+
+                    Look for the presence of job-related skills and experience. Be specific about job roles; a techie can't fill a sales role, and vice versa. Confidence in eligibility should be expressed as 'ResultConfidence' ranging from 0 to 100%.
+
+                    Provide results in a Python dictionary with a concise 'Reason' (within 50 words). Example response format: 
+                    {"Name": "Candidate's Name", "Eligible": true, "ResultConfidence": "20%", "Reason": "Sales experience matches job requirements."}
+
+                    Source:
                     """ + candidate_profile_obj.cv_content
+
                     chat_history.append({'role': 'system', 'content': system_prompt})
+
                     if job_obj:
-                        chat_history.append({'role': 'user', 'content': f"Job Description is : {job_obj.job_description} and Job Role is: "})
+                        chat_history.append({'role': 'user', 'content': f"Job Description: {job_obj.job_description} and Job Role: "})
                     else:
                         chat_history.append({'role': 'user', 'content': short_list_query})
+
                     chat_completion_response = openai.ChatCompletion.create(
                         deployment_id=deployment_id,
                         model=model_used,
                         messages=chat_history,
-                        temperature=0,
+                        temperature=0.3,
                         n=1,
                         stream=True,
                         presence_penalty=-2.0
