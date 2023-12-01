@@ -204,12 +204,19 @@ class GetJobDataAPI(APIView):
         response['status'] = 500
         try:
             req_data = request.data
+            logger.info(f"GetJobDataAPI req_data : {req_data}", extra={'AppName': 'hack'})
 
             job_pk = req_data.get('job_pk', None)
 
             if job_pk:
                 job_obj = JobData.objects.filter(pk=int(job_pk)).first()
-                response['job_description'] = job_obj.job_description
+                curr_data = {
+                        "job_title": job_obj.job_title,
+                        "job_description": job_obj.job_description,
+                        "job_pk": job_obj.pk
+                    }
+                response['data'] = curr_data
+                
             else:
                 job_objs = JobData.objects.all()
                 req_data = []

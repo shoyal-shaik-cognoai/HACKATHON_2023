@@ -71,8 +71,49 @@ function addRows(data) {
   }
 }
 
-function getJobDesc(){
-    alert(this.id)
+function addJobDesc(data){
+  var modalBody = document.querySelector("#modalBody");
+    modalBody.innerHTML = ""
+    const title = document.createElement("h3");
+    title.innerHTML = data.job_title
+    const desc = document.createElement("p");
+    let jobDescription = data.job_description;
+    jobDescription = jobDescription.replaceAll('\n', '<br>');
+    desc.innerHTML = jobDescription
+    modalBody.append(title)
+    modalBody.append(desc)
+  
+
+  const modalDiv = document.getElementById('myModal');
+  modalDiv.style.display = 'block';
+}
+
+function getJobDesc() {
+  const jobId = this.id;
+
+  const json_string = {
+    'job_pk': jobId
+  };
+
+  const xhttp = new XMLHttpRequest();
+  xhttp.open("POST", '/get-job-data/', true); // Set the third parameter to true for asynchronous
+  xhttp.setRequestHeader("Content-Type", "application/json");
+  xhttp.onreadystatechange = function () {
+    if (this.readyState === 4) {
+      if (this.status === 200) {
+        const response = JSON.parse(this.responseText);
+        if (response.status === 200) {
+          console.log(response.data);
+          addJobDesc(response.data);
+        } else {
+          console.error('Error in response:', response.message);
+        }
+      } else {
+        console.error('HTTP request failed with status:', this.status);
+      }
+    }
+  };
+  xhttp.send(JSON.stringify(json_string));
 }
 
 function addJobRoles(data) {
