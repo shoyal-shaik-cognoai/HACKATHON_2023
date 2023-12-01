@@ -173,8 +173,7 @@ function getJobRoles() {
     });
 }
 getJobRoles();
-function getCandidateData() {
-  const job_id = this.id;
+function getCandidateData(job_id) {
   fetch("/get-candidate-data/", {
     method: "POST",
     headers: {
@@ -246,7 +245,7 @@ function openOverlay() {
     shortlist_candidate(this.id)
     this.innerHTML = "Open List"
   }else{
-    getCandidateData()
+    getCandidateData(this.id)
   }
   // document.getElementById("overlay").style.display = "block";
   // addRows();
