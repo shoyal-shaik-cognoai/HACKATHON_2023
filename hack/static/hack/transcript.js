@@ -242,7 +242,7 @@ async function shortlist_candidate(jobId) {
     document.getElementById("overlay").style.display = "block";
     addRows(data.selected_candidates);
     var status = document.getElementById("status");
-    status.innerHTML = "resume shortlisted"
+    status.innerHTML = "Resume Shortlisted"
   } catch (error) {
     console.error("Error:", error);
   }
