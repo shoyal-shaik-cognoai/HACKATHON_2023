@@ -3,7 +3,7 @@ import os
 import sys
 from django.shortcuts import render
 import json
-from hack.models import CandidateProfile, JobData
+from hack.models import CandidateProfile, JobData, CandidateJobStatus
 from hack.utils import call_campaign
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -70,6 +70,8 @@ class CVShortlistingAPI(APIView):
 
             if job_pk:
                 job_obj = JobData.objects.filter(pk=int(job_pk)).first()
+                job_obj.job_status = 'resume_shortlist'
+                job_obj.save()
 
             openai.api_key = "05a87e3db47149699916b25e2b6a664e"
             openai.api_type = "azure"
@@ -77,7 +79,8 @@ class CVShortlistingAPI(APIView):
             openai.api_version = "2023-07-01-preview"
             model_used = "gpt-35-turbo-16k"
             deployment_id = "hack-16k"
-            candidate_profile_objs = CandidateProfile.objects.all()
+            # candidate_profile_objs = CandidateProfile.objects.all()
+            candidate_profile_objs = job_obj.applicable_for.all()
             candidates_phone_numbers_list = []
             for candidate_profile_obj in candidate_profile_objs:
                 try:
@@ -136,8 +139,14 @@ class CVShortlistingAPI(APIView):
 
                     if eligibility_dict.get('Eligible') and (int(eligibility_dict.get('ResultConfidence')[:-1]) > 50):
                         candidates_phone_numbers_list.append({'name': candidate_profile_obj.candidate_name, 'phone_number': candidate_profile_obj.phone_number, 'result_reason': eligibility_dict.get('Reason'), 'confidence': eligibility_dict.get('ResultConfidence'), 'cv_file_path': HACK_DOMAIN + candidate_profile_obj.file_path})
+                        job_status = CandidateJobStatus.objects.filter(job=job_obj, candidate_profile=candidate_profile_obj).first()
+                        job_status.status = 'cv_shortlisted'
+                        job_status.save()
                     elif not eligibility_dict.get('Eligible') and (int(eligibility_dict.get('ResultConfidence')[:-1]) < 30):
                         candidates_phone_numbers_list.append({'name': candidate_profile_obj.candidate_name, 'phone_number': candidate_profile_obj.phone_number, 'result_reason': eligibility_dict.get('Reason'), 'confidence': eligibility_dict.get('ResultConfidence'), 'cv_file_path': HACK_DOMAIN + candidate_profile_obj.file_path})
+                        job_status = CandidateJobStatus.objects.filter(job=job_obj, candidate_profile=candidate_profile_obj).first()
+                        job_status.status = 'cv_shortlisted'
+                        job_status.save()
                     
                     response['status'] = 200
                     response['selected_candidates'] = candidates_phone_numbers_list
@@ -176,15 +185,22 @@ class GetCandidateDataAPI(APIView):
         response = {}
         response['status'] = 500
         try:
-            candidate_profile_objs = CandidateProfile.objects.all()
+            req_data = request.data
+            job_pk = req_data.get('job_id', None)
+            
+            job_obj = JobData.objects.filter(pk=int(job_pk)).first()
+            candidate_profile_objs = CandidateJobStatus.objects.filter(job=job_obj, status="cv_shortlisted")
+
             req_data = []
 
             for candidate_profile_obj in candidate_profile_objs:
+
+                candidate_profile_obj = candidate_profile_obj.candidate_profile
                 curr_data = {
                     "name": candidate_profile_obj.candidate_name,
                     "phone_number": candidate_profile_obj.phone_number,
                     "cv_file_path": HACK_DOMAIN + candidate_profile_obj.file_path,
-                    "confidence": candidate_profile_obj.confidence_percentage
+                    "confidence": candidate_profile_obj.confidence_percentage,
                 }
 
                 req_data.append(curr_data)
@@ -217,7 +233,8 @@ class GetJobDataAPI(APIView):
                 curr_data = {
                         "job_title": job_obj.job_title,
                         "job_description": job_obj.job_description,
-                        "job_pk": job_obj.pk
+                        "job_pk": job_obj.pk,
+                        "status": job_obj.job_status
                     }
                 response['data'] = curr_data
                 

@@ -30,9 +30,9 @@ class JobData(models.Model):
 
     job_description = models.TextField(null=True, blank=True, help_text="job_description")
 
-    # user = models.ForeignKey(CandidateProfile, null=True,blank=True, on_delete=models.CASCADE)
-
     applicable_for = models.ManyToManyField('CandidateProfile', blank=True, help_text="CandidateProfile")
+
+    job_status = models.CharField(max_length=200, default='pending')
 
     def __str__(self):
         return self.job_title
@@ -40,3 +40,19 @@ class JobData(models.Model):
     class Meta:
         verbose_name = 'JobData'
         verbose_name_plural = 'JobData'
+
+
+class CandidateJobStatus(models.Model):
+
+    status = models.CharField(max_length=200)
+
+    candidate_profile = models.ForeignKey('CandidateProfile', null=True, blank=True, on_delete=models.SET_NULL)
+
+    job = models.ForeignKey('JobData', null=True, blank=True, on_delete=models.SET_NULL)
+
+    def __str__(self):
+        return str(self.status) + " - " + str(self.candidate_profile.candidate_name) + " - " + str(self.job.job_title)
+
+    class Meta:
+        verbose_name = 'CandidateJobStatus'
+        verbose_name_plural = 'CandidateJobStatus'
