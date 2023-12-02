@@ -291,12 +291,14 @@ class InitiateCallCampaignAPI(APIView):
         response['status'] = 500
         try:
             req_data = request.data
-            list_of_phone_numbers = req_data.get('list_of_phone_numbers', [])
             job_profile_pk = req_data.get('job_profile_pk')
             job_data_obj = JobData.objects.filter(pk=job_profile_pk).first()
+            print('job_data_obj', job_data_obj)
             qualified_objs = CandidateJobStatus.objects.filter(status='cv_shortlisted', job=job_data_obj)
+            print('qualified_objs', qualified_objs)
             for objs in qualified_objs:
                 candidate_profile = objs.candidate_profile
+                print('candidate_profile', candidate_profile)
                 job_description = job_data_obj.job_description
                 system_prompt = """You a HR at a tech company.
                         Your job is to generate 5 very basic interview question to ask a candidate which relate to Job Description given below
@@ -337,6 +339,8 @@ class InitiateCallCampaignAPI(APIView):
                 candidate_profile.questions_to_be_asked = complete_streamed_text
                 candidate_profile.save(update_fields=["questions_to_be_asked"])
                 call_campaign(str(candidate_profile.phone_number))
+                objs.status = "Screening Inprogress"
+                objs.save(update_fields=['status'])
             response['status'] = 200
         except Exception as e:
             exc_type, exc_obj, exc_tb = sys.exc_info()
@@ -345,3 +349,31 @@ class InitiateCallCampaignAPI(APIView):
         return Response(data=response, status=response['status'])
 
 InitiateCallCampaign = InitiateCallCampaignAPI.as_view()
+
+
+class VoiceScreeningResultsAPI(APIView):
+    @csrf_exempt
+    def post(self, request, *args, **kwargs):
+        response = {}
+        response['status'] = 500
+        try:
+            req_data = request.data
+            job_id = req_data.get('job_id')
+            job_obj = JobData.objects.filter(pk=job_id).first()
+            candy_obj = CandidateJobStatus.objects.filter(status__in=['Qualified Call Screening', 'Disqualified Call Screening'], job=job_obj)
+            ans = []
+            for obj in candy_obj:
+                candidate_name = obj.candidate_profile.candidate_name
+                call_interview_transcript = obj.candidate_profile.call_interview_transcript
+                status = obj.status
+                ans.append([candidate_name, call_interview_transcript, status])
+            response['ans_list'] = ans
+            response['status'] = 200
+        except Exception as e:
+            response['error'] = e
+            exc_type, exc_obj, exc_tb = sys.exc_info()
+            print(e, exc_tb.tb_lineno)
+            logger.error("GetJobDataAPI %s at %s", str(e), str(exc_tb.tb_lineno), extra={'AppName': 'hack'})
+        return Response(data=response, status=response['status'])
+
+VoiceScreeningResults = VoiceScreeningResultsAPI.as_view()

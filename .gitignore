@@ -4,3 +4,4 @@ hack/migrations/*
 static/*
 log/*
 .vscode/*
+file.wav

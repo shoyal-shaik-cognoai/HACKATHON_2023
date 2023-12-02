@@ -9,7 +9,7 @@ openai.api_version = "2023-07-01-preview"
 
 while True:
     candidate_obj = CandidateProfile.objects.filter(is_screening_done=False)
-    # print('candidate_obj', candidate_obj)
+    print('candidate_obj', candidate_obj)
     for obj in candidate_obj:
         if not obj.call_interview_transcript:
             continue

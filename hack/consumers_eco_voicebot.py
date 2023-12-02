@@ -287,7 +287,7 @@ class ExoDevWebSocketConsumer(AsyncWebsocketConsumer):
             self.audio_config = speechsdk.audio.AudioConfig(stream=self.stream)
             self.speech_recognizer = speechsdk.SpeechRecognizer(speech_config=self.speech_config, audio_config=self.audio_config, auto_detect_source_language_config=speechsdk.languageconfig.AutoDetectSourceLanguageConfig(languages=["en-IN"]))
             self.speech_config.set_property(property_id=speechsdk.PropertyId.SpeechServiceConnection_LanguageIdMode, value='Continuous')
-            self.speech_config.set_property(property_id=speechsdk.PropertyId.SpeechServiceResponse_RecognitionLatencyMs, value='100')
+            self.speech_config.set_property(property_id=speechsdk.PropertyId.SpeechServiceResponse_RecognitionLatencyMs, value='700')
             self.frame_duration = 200
             self.thread = None
             self.speech_recognizer.recognized.connect(self.get_recognised_transcribed_text)

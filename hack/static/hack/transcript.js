@@ -1,55 +1,103 @@
 var loader = document.querySelector(".loader");
 
-function startInterviews() {
+function makeRows(data){
   const interviewTable = document.querySelector(".overlay-table.interview");
   const otherTable = document.querySelector(".overlay-table.other");
   const startInterviewButton = document.querySelector(".start-interviews-btn");
-  const hireNowButton = document.querySelector(".data-row button");
-  const statusApproved = document.querySelector(".data-row .status-approved");
+  const hireNowButton = document.querySelector(".button-action");
+  const statusApproved = document.querySelector("#status");
   const overlay = document.querySelector(".overlay-content");
-  
-
-  // Hide the current table and the button, and show the loader
   otherTable.style.display = "none";
   overlay.style.display = "none";
   startInterviewButton.style.display = "none";
-  loader.style.display = "block";
-
-  // Simulate data loading after 2 seconds
-  setTimeout(() => {
-    // Hide the loader
-    loader.style.display = "none";
-
-    // Simulate loading data for the other table
-    // For now, let's add a dummy row after 2 seconds
     const interviewTableBody = document.querySelector(
       ".overlay-table.interview tbody"
     );
+  for(let x in data){
     const newRow = document.createElement("tr");
     const cell1 = document.createElement("td");
-    cell1.textContent = "Loaded Candidate";
+    cell1.textContent = data[x][0]
+    var resumeLink = document.createElement("a");
+    resumeLink.href = data[x][1];
+    resumeLink.target = "_blank";
+    resumeLink.textContent = "Open Transcript";
     const cell2 = document.createElement("td");
-    cell2.textContent = "Loaded Transcript";
+    cell2.append(resumeLink)
     const cell3 = document.createElement("td");
-    cell3.textContent = "Loaded Result";
+    cell3.textContent = data[x][2]
     newRow.appendChild(cell1);
     newRow.appendChild(cell2);
     newRow.appendChild(cell3);
     interviewTableBody.innerHTML = ""; // Clear existing data
     interviewTableBody.appendChild(newRow);
+  }
+  interviewTable.style.display = "table";
 
-    // Show the other table
-    interviewTable.style.display = "table";
+  // Show the button again
+  startInterviewButton.style.display = "none";
+  overlay.style.display = "block";
 
-    // Show the button again
-    startInterviewButton.style.display = "none";
-    overlay.style.display = "block";
+  // Update the "Hire Now" button and status in the data table
+  hireNowButton.innerHTML = "Done";
+  statusApproved.textContent = "Check Results";
+}
 
-    // Update the "Hire Now" button and status in the data table
-    hireNowButton.disabled = true;
-    hireNowButton.textContent = "Done";
-    statusApproved.textContent = "Check Results";
+function getScreenedCandidates(job_id){
+    json_string = {
+      'job_id': job_id
+    }
+
+    const xhttp = new XMLHttpRequest();
+  xhttp.open("POST", '/voice-screening-result/', true); // Set the third parameter to true for asynchronous
+  xhttp.setRequestHeader("Content-Type", "application/json");
+  xhttp.onreadystatechange = function () {
+    if (this.readyState === 4) {
+      if (this.status === 200) {
+        const response = JSON.parse(this.responseText);
+        if (response.status === 200) {
+          makeRows(response.ans_list);
+        } else {
+          console.error('Error in response:', response.message);
+        }
+      } else {
+        console.error('HTTP request failed with status:', this.status);
+      }
+    }
+  };
+  xhttp.send(JSON.stringify(json_string));
+}
+
+
+
+function startInterviews() {
+  loader.style.display = "block";
+  setTimeout(() => {
+    loader.style.display = "none";
   }, 2000);
+  const json_string = {
+    'job_profile_pk': window.job_id
+  };
+
+  const xhttp = new XMLHttpRequest();
+  xhttp.open("POST", '/initate-call-campaign/', true); // Set the third parameter to true for asynchronous
+  xhttp.setRequestHeader("Content-Type", "application/json");
+  xhttp.onreadystatechange = function () {
+    if (this.readyState === 4) {
+      if (this.status === 200) {
+        const response = JSON.parse(this.responseText);
+        if (response.status === 200) {
+          console.log(response.data);
+          addJobDesc(response.data);
+        } else {
+          console.error('Error in response:', response.message);
+        }
+      } else {
+        console.error('HTTP request failed with status:', this.status);
+      }
+    }
+  };
+  xhttp.send(JSON.stringify(json_string));
+  // Hide the current table and the button, and show the loader
 }
 
 function addRows(data) {
@@ -75,7 +123,7 @@ function addRows(data) {
 }
 
 function addJobDesc(data){
-  var modalBody = document.querySelector("#modalBody");
+    var modalBody = document.querySelector("#modalBody");
     modalBody.innerHTML = ""
     const title = document.createElement("h3");
     title.innerHTML = data.job_title
@@ -139,10 +187,13 @@ function addJobRoles(data) {
       inputButton.innerHTML = "Open List"
     }
     inputButton.id = data[x].job_pk
+    inputButton.className = "button-action"
     inputButton.addEventListener('click', openOverlay);
     const cell5 = document.createElement("td")
     cell5.appendChild(inputButton)
     const cell6 = document.createElement("td");
+    cell6.id = "status"
+    cell6.className = ".status-approved"
     if(data[x].status == "pending"){
       cell6.textContent = "Pending"
     }else if(data[x].status == "resume_shortlist"){
@@ -180,6 +231,7 @@ function getJobRoles() {
 }
 getJobRoles();
 function getCandidateData(job_id) {
+  window.job_id = job_id;
   fetch("/get-candidate-data/", {
     method: "POST",
     headers: {
@@ -249,9 +301,13 @@ async function shortlist_candidate(jobId) {
 }
 
 function openOverlay() {
+  var status = document.getElementById('status')
   if(this.innerHTML == "Shortlist"){
     shortlist_candidate(this.id)
     this.innerHTML = "Open List"
+  // }else if(this.innerHTML == "Open List" && status.textContent == "Resume Shortlisted"){
+  //   getScreenedCandidates(this.id)
+  // }
   }else{
     getCandidateData(this.id)
   }
