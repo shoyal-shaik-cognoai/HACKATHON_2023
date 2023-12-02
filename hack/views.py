@@ -298,16 +298,22 @@ class InitiateCallCampaignAPI(APIView):
             print('qualified_objs', qualified_objs)
             for objs in qualified_objs:
                 candidate_profile = objs.candidate_profile
-                print('candidate_profile', candidate_profile)
                 job_description = job_data_obj.job_description
-                system_prompt = """You a HR at a tech company.
-                        Your job is to generate 5 very basic interview question to ask a candidate which relate to Job Description given below
-                        Generate your questions in this format E.g.
-                        {"q1": "one word question related to Job Description", "q2": "one word question related to Job Description", "q3": "one word question related to Job Description", "q4": "one word question related to Job Description", "q5": "one word question related to Job Description"}
-                        Job Description:
+                job_title = job_data_obj.job_title
+                system_prompt = """You are an HR professional conducting a telephonic interview for a Software Engineer position at a tech company. Your task is to craft five succinct interview questions, each requiring a short answer, directly aligned with the following job description. Please format your questions as shown below:
+                        {
+                        "q1": "Question 1 (short answer)",
+                        "q2": "Question 2 (short answer)",
+                        "q3": "Question 3 (short answer)",
+                        "q4": "Question 4 (short answer)",
+                        "q5": "Question 5 (short answer)"
+                        }
 
-                """ + job_description
 
+                    Job Description:
+
+                    """ + job_description + f"Please provide concise questions suitable for a telephonic interview that help gauge candidates' qualifications and suitability for the {job_title} role."
+    
                 openai.api_key = "05a87e3db47149699916b25e2b6a664e"
                 openai.api_type = "azure"
                 openai.api_base = "https://gpt3-5-sc.openai.azure.com/"
@@ -345,11 +351,10 @@ class InitiateCallCampaignAPI(APIView):
         except Exception as e:
             exc_type, exc_obj, exc_tb = sys.exc_info()
             print(e, exc_tb.tb_lineno)
-            logger.error("GetJobDataAPI %s at %s", str(e), str(exc_tb.tb_lineno), extra={'AppName': 'hack'})
+            logger.error("InitiateCallCampaignAPI %s at %s", str(e), str(exc_tb.tb_lineno), extra={'AppName': 'hack'})
         return Response(data=response, status=response['status'])
 
 InitiateCallCampaign = InitiateCallCampaignAPI.as_view()
-
 
 class VoiceScreeningResultsAPI(APIView):
     @csrf_exempt
@@ -360,13 +365,15 @@ class VoiceScreeningResultsAPI(APIView):
             req_data = request.data
             job_id = req_data.get('job_id')
             job_obj = JobData.objects.filter(pk=job_id).first()
+            print('job_obj', job_obj)
             candy_obj = CandidateJobStatus.objects.filter(status__in=['Qualified Call Screening', 'Disqualified Call Screening'], job=job_obj)
+            print('candy_obj', candy_obj)
             ans = []
             for obj in candy_obj:
                 candidate_name = obj.candidate_profile.candidate_name
-                call_interview_transcript = obj.candidate_profile.call_interview_transcript
+                candidate_profile_pk = obj.candidate_profile.pk
                 status = obj.status
-                ans.append([candidate_name, call_interview_transcript, status])
+                ans.append([candidate_name, candidate_profile_pk, status])
             response['ans_list'] = ans
             response['status'] = 200
         except Exception as e:
@@ -377,3 +384,23 @@ class VoiceScreeningResultsAPI(APIView):
         return Response(data=response, status=response['status'])
 
 VoiceScreeningResults = VoiceScreeningResultsAPI.as_view()
+
+
+@csrf_exempt
+def TranscriptGenerator(request):
+    try:
+        print('TranscriptGenerator')
+        logger.info("testing logs.", extra={'AppName': 'hack'})
+        data = request.GET
+        print(data)
+
+        return render(request, 'hack/transcript-generator.html', {
+            'transcript': json.loads(CandidateProfile.objects.filter(pk=data.get('profile_pk')).first().call_interview_transcript)
+        })
+
+    except Exception as e:
+        exc_type, exc_obj, exc_tb = sys.exc_info()
+        logger.error("TranscriptGenerator %s at %s",
+                     str(e), str(exc_tb.tb_lineno), extra={'AppName': 'hack'})
+
+        return render(request, 'EasyChatApp/error_500.html')

@@ -4,8 +4,7 @@ function makeRows(data){
   const interviewTable = document.querySelector(".overlay-table.interview");
   const otherTable = document.querySelector(".overlay-table.other");
   const startInterviewButton = document.querySelector(".start-interviews-btn");
-  const hireNowButton = document.querySelector(".button-action");
-  const statusApproved = document.querySelector("#status");
+  const hireNowButton = document.querySelector(".clickable-cell");
   const overlay = document.querySelector(".overlay-content");
   otherTable.style.display = "none";
   overlay.style.display = "none";
@@ -13,24 +12,30 @@ function makeRows(data){
     const interviewTableBody = document.querySelector(
       ".overlay-table.interview tbody"
     );
-  for(let x in data){
-    const newRow = document.createElement("tr");
-    const cell1 = document.createElement("td");
-    cell1.textContent = data[x][0]
-    var resumeLink = document.createElement("a");
-    resumeLink.href = data[x][1];
-    resumeLink.target = "_blank";
-    resumeLink.textContent = "Open Transcript";
-    const cell2 = document.createElement("td");
-    cell2.append(resumeLink)
-    const cell3 = document.createElement("td");
-    cell3.textContent = data[x][2]
-    newRow.appendChild(cell1);
-    newRow.appendChild(cell2);
-    newRow.appendChild(cell3);
-    interviewTableBody.innerHTML = ""; // Clear existing data
-    interviewTableBody.appendChild(newRow);
-  }
+    for(let x in data){
+      const newRow = document.createElement("tr");
+      const cell1 = document.createElement("td");
+      cell1.textContent = data[x][0]
+      var resumeLink = document.createElement("a");
+      resumeLink.href = 'http://localhost:8000/transcript-generator/?profile_pk=' + data[x][1]; // Set a placeholder href value, it will be updated later
+      resumeLink.textContent = "Open Transcript";
+      const cell2 = document.createElement("td");
+      cell2.append(resumeLink);
+  
+      // resumeLink.addEventListener('click', function(event) {
+      //     event.preventDefault();
+      //     var newWindow = window.open('', '_blank');
+      //     newWindow.document.write('<html><head><title>Transcript</title></head><body>' + data[x][1] + '</body></html>');
+      //     resumeLink.href = newWindow.document.URL;
+      // });
+      const cell3 = document.createElement("td");
+      cell3.textContent = data[x][2]
+      newRow.appendChild(cell1);
+      newRow.appendChild(cell2);
+      newRow.appendChild(cell3);
+      interviewTableBody.innerHTML = ""; // Clear existing data
+      interviewTableBody.appendChild(newRow);
+    }
   interviewTable.style.display = "table";
 
   // Show the button again
@@ -38,8 +43,8 @@ function makeRows(data){
   overlay.style.display = "block";
 
   // Update the "Hire Now" button and status in the data table
-  hireNowButton.innerHTML = "Done";
-  statusApproved.textContent = "Check Results";
+  hireNowButton.innerHTML = "Show Results";
+  document.getElementById("overlay").style.display = "block";
 }
 
 function getScreenedCandidates(job_id){
@@ -77,7 +82,6 @@ function startInterviews() {
   const json_string = {
     'job_profile_pk': window.job_id
   };
-
   const xhttp = new XMLHttpRequest();
   xhttp.open("POST", '/initate-call-campaign/', true); // Set the third parameter to true for asynchronous
   xhttp.setRequestHeader("Content-Type", "application/json");
@@ -87,16 +91,29 @@ function startInterviews() {
         const response = JSON.parse(this.responseText);
         if (response.status === 200) {
           console.log(response.data);
-          addJobDesc(response.data);
         } else {
           console.error('Error in response:', response.message);
         }
       } else {
         console.error('HTTP request failed with status:', this.status);
       }
+      const modalDiv = document.getElementById('overlay');
+      modalDiv.style.display = 'none';
     }
   };
   xhttp.send(JSON.stringify(json_string));
+  let buttons =  document.querySelectorAll(".clickable-cell")
+
+  for (let i=0;i<buttons.length;i++){
+    if (buttons[i].id == window.job_id){
+      buttons[i].innerHTML = "Screen Data"
+    }
+  }
+  // for (let x in buttons){
+  //   if(x.id == window.job_id){
+  //     x.innerHTML = "Screen Data"
+  //   }
+  // }
   // Hide the current table and the button, and show the loader
 }
 
@@ -141,7 +158,7 @@ function addJobDesc(data){
 
 function getJobDesc() {
   const jobId = this.id;
-
+  window.job_id = jobId
   const json_string = {
     'job_pk': jobId
   };
@@ -181,33 +198,21 @@ function addJobRoles(data) {
     const cell4 = document.createElement("td");
     cell4.textContent = '15'
     var inputButton = document.createElement("button");
+    console.log(data[x].status)
     if(data[x].status == "pending"){
       inputButton.innerHTML = "Shortlist"
-    }else{
+    }else if(data[x].status == "resume_shortlist"){
       inputButton.innerHTML = "Open List"
     }
     inputButton.id = data[x].job_pk
-    inputButton.className = "button-action"
-    inputButton.addEventListener('click', openOverlay);
+    inputButton.className = "clickable-cell"
+    inputButton.addEventListener("click", openOverlay)
     const cell5 = document.createElement("td")
     cell5.appendChild(inputButton)
-    const cell6 = document.createElement("td");
-    cell6.id = "status"
-    cell6.className = ".status-approved"
-    if(data[x].status == "pending"){
-      cell6.textContent = "Pending"
-    }else if(data[x].status == "resume_shortlist"){
-      cell6.textContent = "Resume Shortlisted"
-    }else{
-      cell6.textContent = "Candidates Shortlisted"
-    }
-    
-    cell6.id = "status"
     newRow.appendChild(cell1);
     newRow.appendChild(cell2);
     newRow.appendChild(cell4);
     newRow.appendChild(cell5);
-    newRow.appendChild(cell6);
     newRow.className = "data-table"
     dataTableBody.appendChild(newRow);
   }
@@ -250,27 +255,9 @@ function getCandidateData(job_id) {
     });
 }
 
-// function shortlist_candidate(jobId) {
-//   fetch(`/cv-short-list-query/?job_pk=${String(jobId)}`, {
-//     method: "GET",
-//     headers: {
-//       "Content-Type": "application/json",
-//     },
-//   })
-//     .then((response) => response.json())
-//     .then((data) => {
-//       const loader = document.querySelector(".loader");
-//       loader.style.display = "none";
-//       document.getElementById("overlay").style.display = "block";
-//       addRows(data.selected_candidates);
-//     })
-//     .catch((error) => {
-//       console.error("Error:", error);
-//     });
-// }
-
 async function shortlist_candidate(jobId) {
   try {
+    window.job_id = jobId
     const loader = document.querySelector(".loader");
     const bodyElement = document.querySelector('body');
     loader.style.display = "block";
@@ -292,27 +279,26 @@ async function shortlist_candidate(jobId) {
 
     loader.style.display = "none";
     document.getElementById("overlay").style.display = "block";
-    addRows(data.selected_candidates);
-    var status = document.getElementById("status");
-    status.innerHTML = "Resume Shortlisted"
+    addRows(data.selected_candidates)
   } catch (error) {
     console.error("Error:", error);
   }
 }
 
 function openOverlay() {
-  var status = document.getElementById('status')
+  console.log(this.id)
   if(this.innerHTML == "Shortlist"){
-    shortlist_candidate(this.id)
     this.innerHTML = "Open List"
-  // }else if(this.innerHTML == "Open List" && status.textContent == "Resume Shortlisted"){
-  //   getScreenedCandidates(this.id)
-  // }
-  }else{
+    shortlist_candidate(this.id)
+  }else if(this.innerHTML == "Open List"){
     getCandidateData(this.id)
+    window.job_id = this.id
+  }else if(this.innerHTML == "Screen Data"){
+    getScreenedCandidates(this.id)
+    window.job_id = this.id
+  }else if(this.innerHTML == "Show Results"){
+    document.getElementById("overlay").style.display = "block";
   }
-  // document.getElementById("overlay").style.display = "block";
-  // addRows();
 }
 
 function closeOverlay() {

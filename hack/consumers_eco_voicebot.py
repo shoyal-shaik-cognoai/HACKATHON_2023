@@ -36,6 +36,7 @@ class ExoDevWebSocketConsumer(AsyncWebsocketConsumer):
         self.common_prompt = """
             You are an HR interviewer you have talk call interview.
             Candidate will never ask a question.
+            If user goes out of context then you need to say this is out of your scope and ask the question back.
             If user asks to repeat the question you have to repeat the question.
             Remeber after asking question never ask the for the answer twice.
         """

@@ -38,11 +38,10 @@ while True:
         obj.is_screening_done = True
         obj.save(update_fields=["is_screening_done"])
         call_screening_score = sum(json.loads(chat_content).values())
+        can_job_sta_obj = CandidateJobStatus.objects.filter(candidate_profile=obj).first()
         if call_screening_score > 20:
-            can_job_sta_obj = CandidateJobStatus.objects.filter(candidate_profile=obj).first()
             can_job_sta_obj.status = "Qualified Call Screening"
         else:
-            can_job_sta_obj = CandidateJobStatus.objects.filter(candidate_profile=obj).first()
             can_job_sta_obj.status = "Disqualified Call Screening"
         can_job_sta_obj.call_screening_score = call_screening_score
         can_job_sta_obj.save(update_fields=['status', 'call_screening_score'])

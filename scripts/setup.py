@@ -62,8 +62,11 @@ def setup():
 
         for job_data in job_datas:
             for candidate_profile in candidate_profiles:
+                job_data.applicable_for.add(candidate_profile)
                 CandidateJobStatus.objects.create(
                     candidate_profile=candidate_profile, job=job_data, status="applied")
+            
+            job_data.save()
 
     except Exception as err:
         exc_type, exc_obj, exc_tb = sys.exc_info()
